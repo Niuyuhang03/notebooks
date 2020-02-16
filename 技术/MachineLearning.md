@@ -2,7 +2,7 @@
 
 + 数据集来源为[100-Days-Of-ML-Code](https://github.com/MLEveryday/100-Days-Of-ML-Code/blob/master/datasets/Social_Network_Ads.csv)。
 
-## 数据处理
+## 基础知识
 
 + 数据处理：读取数据，将非数值数据编码，处理丢失数据，拆分数据集为训练集、验证集和测试集，归一化。
   ```python
@@ -81,7 +81,7 @@
   ![混淆矩阵](http://ww1.sinaimg.cn/large/96803f81ly1fzf7rkjiqaj20d406oglx.jpg)
 
   ```python
-  # confusion_matrix混淆矩阵。
+  # confusion_matrix混淆矩阵
   from sklearn.metrics import confusion_matrix
   cm = confusion_matrix(cv_Y, predict_cv_Y)
   print(cm)
@@ -129,6 +129,17 @@
   score = r2_score(cv_Y, predict_cv_Y)
   ```
 
++ 过拟合解决方法
+  + dropout
+  + 正则化：利用正则化系数$\lambda$作为惩罚，以放大逻辑回归的梯度中每个$\theta$的影响，从而减小$\theta$的值，防止过拟合。$\theta_0$恒为1，不需惩罚。L1正则化是绝对值之和，L2正则化是平方和的开方，常用L2来防止过拟合。
+  + batch normalizatin：经过每一层计算，数据分布会发生变化，学习越来越困难。BN即在一个mini-batch内对数据的每个feature进行均值-方差归一化，归一化后再做一个线性变换$y=\gamma x+\beta$，通过两个可学习的参数，一定程度上保留数据原本特征。极端的情况下，$\gamma$和$\beta$就是方差和均值，数据完全还原。
+
++ 梯度爆炸和消失：BP反传中，多个导数连乘可能导致梯度非常小，无法更新参数，导致梯度消失。同理，可能梯度非常大，导致梯度爆炸。将Sigmoid换用ReLU或LeakyReLU激活函数可解决，其正数的导数恒为1，不会带来梯度爆炸和消失。
+
+## 贝叶斯公式
+
++ 后验概率$P(w_i|x)=\frac{P(x|w_i)P(w_i)}{P(x)}$，$P(w_i)$为先验概率。对于朴素贝叶斯，假设各个特征之间独立且相同重要，在现实世界不可能，故朴素。
++ 概率模型不需要归一化。
 
 ## 分类
 
@@ -137,6 +148,9 @@
 ### kNN（k-邻近算法）
 
 + kNN是监督学习的一种**分类**算法。其核心思想为根据特征，**找到距离测试集距离最近的k个训练集，统计训练集的label，将出现次数最多的label作为预测的label**，不具有显示学习过程。kNN计算量很大，通常k不大于20，k过小则噪声影响很大，k过大则计算速度较慢，推荐遍历k选取最优值。**kNN通常需要归一化**，使得样本的权重相同。
+
++ kNN和k-means中使用的是欧氏距离，即两点空间的距离。而不是曼哈顿距离，即每个坐标轴下的距离之和。相比之下，欧氏距离是更可行的，没有维度限制。
+
 + ```python
 def classify(normal_train_X, train_Y, normal_test_X, k):
     '''
@@ -167,13 +181,11 @@ def classify(normal_train_X, train_Y, normal_test_X, k):
 
 ### 逻辑回归
 
-+ 逻辑回归是有监督的**分类**算法（而不是回归算法），一般的逻辑回归只能用于二分类，多分类需要多个逻辑回归模型。**其原理和线性回归类似，只是给回归方程加上了`sigmoid`函数，使得结果映射为0和1**。相应的，修改代价函数，梯度下降求出最优$\theta$。理解逻辑回归需要先理解线性回归。逻辑回归实质上是找到一个决策边界。逻辑回归的回归函数$h_\theta(x)=sigmoid(\theta^Tx)$，$sigmoid(t)=\frac{1}{1+e^{-t}}$。
++ 逻辑回归是有监督的**分类**算法（而不是回归算法），一般的逻辑回归只能用于二分类，多分类需要多个逻辑回归模型。**其原理和线性回归类似，只是给回归方程加上了`sigmoid`函数，使得结果映射为0和1**。相应的，修改损失函数，梯度下降求出最优$\theta$。理解逻辑回归需要先理解线性回归。逻辑回归实质上是找到一个决策边界。逻辑回归的回归函数$h_\theta(x)=sigmoid(\theta^Tx)$，$sigmoid(t)=\frac{1}{1+e^{-t}}$。
 
   ![sigmoid](http://ww1.sinaimg.cn/large/96803f81ly1fzfkiptauxj20dv0dtq3f.jpg)
 
-  可以看到，S函数将在t>0时，y>0.5，在t<0时，y<0.5，因此可以将测试集标签分为1和0。对于已知m*n维的X，逻辑回归的代价函数为$J(\theta)=\frac{1}{m}\Sigma^m_{i=1}[-y^{(i)}\log(h_\theta(x^{(i)}))-(1-y^{(i)})\log(1-h_\theta(x^{(i)}))]$。逻辑回归需要用***正则化**，正则化后的梯度为$\frac{\partial J(\theta)}{\partial\theta_j}=\frac{1}{m}\Sigma_{i=1}^m(h_\theta(x^{(i)})-y^{(i)})x^{(i)}_j+\frac{\lambda}{m}\theta_j(j>0)$。
-  
-+ 正则化：利用正则化系数$\lambda$作为惩罚，以放大每个$\theta$的影响，从而减小$\theta$的值，**防止过拟合**。$\theta_0$恒为1，不需惩罚。
+  可以看到，S函数将在t>0时，y>0.5，在t<0时，y<0.5，因此可以将测试集标签分为1和0。对于已知m*n维的X，逻辑回归的损失函数为$J(\theta)=\frac{1}{m}\Sigma^m_{i=1}[-y^{(i)}\log(h_\theta(x^{(i)}))-(1-y^{(i)})\log(1-h_\theta(x^{(i)}))]$。逻辑回归需要用***正则化**，正则化后的梯度为$\frac{\partial J(\theta)}{\partial\theta_j}=\frac{1}{m}\Sigma_{i=1}^m(h_\theta(x^{(i)})-y^{(i)})x^{(i)}_j+\frac{\lambda}{m}\theta_j(j>0)$。
 
 
 + ```python
@@ -627,8 +639,8 @@ def classify(normal_train_X, train_Y, normal_test_X, k):
 + 线性回归是一种有监督的**回归**（预测）算法，目的是对于已知m*n维的X，**通过拟合出回归系数$\theta$，得到回归方程$h_\theta(x)=\theta_0+\Sigma_{i=1}^n\theta_ix_i=\theta^Tx$进行预测**。拟合回归系数$\theta$的过程，实际上就是求使得预测的平方误差和（SSE）最小时的$\theta$，即对平方误差和求导，导数为0时的$\theta$。求解$\theta$时，有正规方程和梯度下降两种求解方法。
 
   + 正规方程即直接求解出导数为0时的$\theta$值$\theta=(X^TX)^{-1}X^Ty$，然而矩阵有逆要求为非奇异矩阵，且这个方法在矩阵X较大时速度慢于梯度下降，因此常用梯度下降法求解线性回归。
-  + 梯度下降即通过迭代求解代价函数收敛时的$\theta$，迭代有多种方法，如批量梯度下降法（BGD），随机梯度下降（SGD）等。
-    + 批量梯度下降法，定义代价函数$J(\theta)=\frac{1}{2m}\Sigma_{i=1}^m(h_\theta(x^{(i)})-y^{(i)})^2$，类似于均方误差MSE，代价函数的最小值应该在导数（梯度）为0时得到。求出第j个特征的梯度$\frac{\partial J(\theta)}{\partial\theta_j}=\frac{1}{m}\Sigma_{i=1}^m(h_\theta(x^{(i)})-y^{(i)})x^{(i)}_j$，注意**计算每个$\theta_j$时都用到了完整的$\theta$**。更新$\theta$在每个特征处的值$\theta_j=\theta_j-\alpha\frac{\partial J(\theta)}{\partial\theta_j}$，θ向着代价函数梯度变化最大的方向移动，直至代价函数$J$收敛，即可得到回归系数$\theta$。注意BGD要求在一轮内，上一个$\theta$在所有特征的值都计算完后，再更新所有的$\theta_j$。最后通过$\theta$和测试集X相乘，得到测试集标签。梯度下降法要求对X进行**归一化**，来加快迭代速度。
+  + 梯度下降即通过迭代求损失函数收敛时的$\theta$，迭代有多种方法，如批量梯度下降法（BGD），随机梯度下降（SGD）等。
+    + 批量梯度下降法，定义损失函数$J(\theta)=\frac{1}{2m}\Sigma_{i=1}^m(h_\theta(x^{(i)})-y^{(i)})^2$，类似于均方误差MSE，损失函数的最小值应该在导数（梯度）为0时得到。求出第j个特征的梯度$\frac{\partial J(\theta)}{\partial\theta_j}=\frac{1}{m}\Sigma_{i=1}^m(h_\theta(x^{(i)})-y^{(i)})x^{(i)}_j$，注意**计算每个$\theta_j$时都用到了完整的$\theta$**。更新$\theta$在每个特征处的值$\theta_j=\theta_j-\alpha\frac{\partial J(\theta)}{\partial\theta_j}$，θ向着损失函数梯度变化最大的方向移动，直至函数$J$损失收敛，即可得到回归系数$\theta$。注意BGD要求在一轮内，上一个$\theta$在所有特征的值都计算完后，再更新所有的$\theta_j$。最后通过$\theta$和测试集X相乘，得到测试集标签。梯度下降法要求对X进行**归一化**，来加快迭代速度。
     + 随机梯度下降在求梯度时，每次更新$\theta$只随机用了一个样本，而不是计算m个样本的平均值，收敛速度加快。
 
 + ```python
@@ -868,3 +880,21 @@ def classify(normal_train_X, train_Y, normal_test_X, k):
       print('Test Accuracy of the model on the 10000 test images: {} %'.format(100 * correct / total))
       torch.save(model.state_dict(), 'model.ckpt')
   ```
+
++ CNN为什么可用于CV，NLP，speech等领域：以上领域都存在局部和整体的关系，低层次特征组合为高层次特征的共性。CNN通过卷积、池化等实现此共性。
+
+## 集成学习
+
++ 以Boosting方法为例。所谓Boosting方法，即迭代提升，故为串行算法。先训练弱学习器，然后根据前一个弱学习器分错的样本，改变样本的概率分布构成新的训练集，从而训练出一个更强的学习器。这样反复迭代提升，就能得到一系列分类器。最后，将这些分类器组合起来，就能构成一个很强的学习器。
+
+### AdaBoost
+
++ 在不改变训练数据的情况下，通过在迭代训练弱学习器中，不断提升被错分类样本的权重（也就是使被错分的样本在下一轮训练时得到更多的重视），不断减少正确分类样本的权重。最后通过加权线性组合M个弱分类器得到最终的分类器，正确率越高的弱分类器的投票权数越高，正确率低的弱分类器自然投票权数就低。
+
+### GBDT
+
++ 迭代的决策树算法，由多棵决策树组成，所有树的结论累加起来做最终答案。GBDT中的树是回归树（不是分类树），GBDT用来做回归预测。
+
+### xgboost
+
++ 相比GBDT，使用了正则化防止过拟合，loss采用了泰勒展开实现二阶导数而不是一阶导数，寻找最佳分割点标准是最大化Lsplit。xgboost在精度和效率上都有了提升。
