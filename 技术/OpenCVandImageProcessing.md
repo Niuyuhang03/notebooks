@@ -413,7 +413,7 @@ findContour会修改输入图像，要先copy。
 
 ## 人脸检测
 
-+ 用harr cascade方法。所需文件从[opencv](https://github.com/opencv/opencv/tree/master/data/haarcascades)下载
++ 用haar cascade方法。所需文件从[opencv](https://github.com/opencv/opencv/tree/master/data/haarcascades)下载
 
 ```python
 haar_face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_alt.xml')
