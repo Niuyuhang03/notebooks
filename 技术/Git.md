@@ -23,7 +23,7 @@ git reset --hard commitid # 撤销commmit、add和修改，重置到之前某一
 + 删除远程文件，但不删除本地文件
 ```bash
 git rm -n --cached xxx  # -n参数显示预览，不执行删除
-git rm --cached
+git rm --cached xxx
 vi .gitignore
 commit push
 ```
