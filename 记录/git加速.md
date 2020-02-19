@@ -1,4 +1,14 @@
-#  为 git 使用代理
+# 下载releases的文件太慢
+
++ 直接复制链接到迅雷
+
+# 下载整个仓库的zip太慢
+
++ 在码云gitee导入github仓库链接，在码云下载
+
+#  clone仓库太慢
+
+## 为 git 使用代理
 
 如果你已经拥有了一些代理软件，那么直接为 `git` 设置代理是最好的提速方法，这里以 `ss` 为例，假设本地代理地址为 `127.0.0.1：1080`，那么你可以使用以下命令为 `git` 设置代理：
 
@@ -12,7 +22,7 @@
 # http/https协议git clone https://github.com/leslievan/verilog.git# ssh协议git clone git@github.com:leslievan/verilog,git
 ```
 
-#  修改 host 文件
+## 修改 host 文件
 
 在 `git clone` 或 `git push` 时，实际上并不是直接向 `github.com` 发送请求，而是对 `github.global.ssl.fastly.net` 发送请求与通信，Fastly 公司在中国有着众多的 CDN 节点，GitHub 可能因为成本或者其他原因，并没有在中国搭设自己专属的 CDN 节点，我们可以通过修改 `host` 文件来加速对这个域名的访问。
 
