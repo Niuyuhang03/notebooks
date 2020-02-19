@@ -1,3 +1,5 @@
++ 不可购买付费app
+
 Step1: 准备工作：free style上网
 
 1. （可选步骤）手机上语言设置为English
@@ -22,7 +24,7 @@ Step 3: 完善账户信息
 + 填写手机号码。到 [Temporary SMS and Disposable Numbers](https://link.zhihu.com/?target=https%3A//smsreceivefree.com/) 这个网站（其他网站还有，Google “disposable number”）可以提供一个美国/加拿大的虚拟手机号码，可以收到短信验证码。选择一个，然后填写上去，不需要写美国的国家代码 +1。需要注意的是，有些号码可能被用烂了，会提示invalid phone number，换一个再试
 + 上述步骤完成以后，确认。账号注册就算基本成功了
 
-Step 4: 最后验证账号，大功告成
+Step 4: 验证账号
 
 1. 打开手机上的app store，应该会自动变成美国区商店（英文）
 2. 在美国区的app store里面，随便选择一个免费app下载。然后会提示让你登陆，选择use an existing apple id
