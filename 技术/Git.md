@@ -60,6 +60,9 @@ git branch xxx
 创建新本地分支xxx并切换过去
 git checkout -b xxx
 
+拉取远程分支xxx并切换过去
+git checkout -b xxx origin/xxx
+
 查看本地文件状态
 git status
 
