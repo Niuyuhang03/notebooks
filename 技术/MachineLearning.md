@@ -9,7 +9,7 @@
   import numpy as np
   import pandas as pd
   import operator
-  from sklearn.preprocessing import Imputer, LabelEncoder, StandardScaler
+  from sklearn.preprocessing import LabelEncoder, StandardScaler
   from sklearn.model_selection import train_test_split
   from sklearn.metrics import accuracy_score
   from sklearn.metrics import confusion_matrix
@@ -23,16 +23,18 @@
       train_data = pd.read_csv('train.csv')
       X = train_data.iloc[:, 1:4]
       Y = train_data.iloc[:, 4].values
+      # 查看数据集详情
+      print(X.describe())
       # 将male和female转为1和0
       labelencoder_X = LabelEncoder()
       X.iloc[:,0] = labelencoder_X.fit_transform(X.iloc[:,0])
       X = X.values
+      # 或对特定某行转化
+      X['Sex'] = pd.factorize(X.Sex)[0]
       # 将缺失数据替换为平均值
       if np.isnan(X.astype(float)).sum() > 0:
           print("NaN exists in train_X.")
-          imp = Imputer(missing_values='NaN',strategy='mean',axis=0)
-          imp.fit(X)
-          X = imp.transform(X).astype(np.int32)
+          X = X.fillna(X.mean())
       # 划分训练集和交叉验证集，比例为8:2
       train_X, cv_X, train_Y, cv_Y = train_test_split(X, Y, test_size=0.2)
   
