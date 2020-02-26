@@ -766,6 +766,60 @@ def classify(normal_train_X, train_Y, normal_test_X, k):
 
   + 对于输出层，求得误差$\delta_i=y_{i,true}-y_i$}。对于隐藏层，求得误差$\delta_i=\Sigma w\delta$。
   + 更新权重。从输入层开始，$w=w+\eta\delta\frac{\partial y}{\partial\Sigma w} x$，其中$\eta$是学习速率。
+  
++ ```python
+  num_epochs = 500
+  learning_rate = 0.02
+  
+  class AnnNet(nn.Module):
+      def __init__(self):
+          super(AnnNet, self).__init__()
+          self.fc1 = nn.Linear(7, 5)
+          self.tanh = nn.Tanh()
+          self.fc2 = nn.Linear(5, 5)
+          self.relu = nn.ReLU()
+          self.fc3 = nn.Linear(5, 2)
+  
+      def forward(self, x):
+          out = self.fc1(x)
+          out = self.tanh(out)
+          out = self.fc2(out)
+          out = self.relu(out)
+          out = self.fc3(out)
+          return out
+  
+  
+  model = AnnNet()
+  print(model)
+  criterion = nn.CrossEntropyLoss()
+  optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+  losses = []
+  
+  for epoch in range(num_epochs):
+      model.train()
+      optimizer.zero_grad()
+      pred = model(train_x)
+      loss = criterion(pred, train_y)
+      losses.append(loss)
+      loss.backward()
+      optimizer.step()
+      correct = (torch.max(pred.data, 1)[1] == train_y).sum()
+      acc = correct.item() / len(pred)
+      print("Epoch:[{}/{}], acc: {:.4f}, Loss:{:.4f}".format(epoch + 1, num_epochs, acc, loss.item()))
+  
+  model.eval()
+  with torch.no_grad():
+      test_y = model(test_x)
+  test_y = pd.DataFrame(torch.argmax(test_y, 1).numpy())
+  test_y = pd.concat([test_id, test_y], axis=1)
+  test_y.columns = ['PassengerId', 'Survived']
+  test_y.to_csv('submission.csv', index=False, encoding='utf8')
+  
+  plt.figure(figsize=(6, 4), dpi=144)
+  plt.plot([i + 1 for i in range(num_epochs)], losses, 'r-', lw=1)
+  plt.yticks([x * 0.1 for x in range(15)])
+  plt.show()
+  ```
 
 ### CNN
 
