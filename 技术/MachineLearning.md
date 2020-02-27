@@ -1,142 +1,176 @@
 # 机器学习基础算法
 
-+ 数据集来源为[100-Days-Of-ML-Code](https://github.com/MLEveryday/100-Days-Of-ML-Code/blob/master/datasets/Social_Network_Ads.csv)。
++ 数据集来源为[100-Days-Of-ML-Code](https://github.com/MLEveryday/100-Days-Of-ML-Code/blob/master/datasets/Social_Network_Ads.csv)、[digit-recognizer](https://www.kaggle.com/c/digit-recognizer/data)。
 
-## 基础知识
+## 模型代码
 
 + 数据处理：读取数据，将非数值数据编码，处理丢失数据，拆分数据集为训练集、验证集和测试集，归一化。
+  
   ```python
-  import numpy as np
+  import torch
+  import torch.nn as nn
+  import torch.nn.functional as F
   import pandas as pd
-  import operator
-  from sklearn.preprocessing import LabelEncoder, StandardScaler
+  import numpy as np
+  import matplotlib.pyplot as plt
   from sklearn.model_selection import train_test_split
-  from sklearn.metrics import accuracy_score
-  from sklearn.metrics import confusion_matrix
+  import seaborn as sns
+  from keras.utils.np_utils import to_categorical
   
   
-  def load_data():
-      '''
-      读入训练集和测试集
-      :return:训练集特征、交叉验证集特征、训练集标签、交叉验证集标签、测试集特征
-      '''
-      train_data = pd.read_csv('train.csv')
-      X = train_data.iloc[:, 1:4]
-      Y = train_data.iloc[:, 4].values
-      # 查看数据集详情
-      print(X.describe())
-      # 将male和female转为1和0
-      labelencoder_X = LabelEncoder()
-      X.iloc[:,0] = labelencoder_X.fit_transform(X.iloc[:,0])
-      X = X.values
-      # 或对特定某行转化
-      X['Sex'] = pd.factorize(X.Sex)[0]
-      # 将缺失数据替换为平均值
-      if np.isnan(X.astype(float)).sum() > 0:
-          print("NaN exists in train_X.")
-          X = X.fillna(X.mean())
-      # 划分训练集和交叉验证集，比例为8:2
-      train_X, cv_X, train_Y, cv_Y = train_test_split(X, Y, test_size=0.2)
+  # 读取数据
+  test_x = pd.read_csv("../input/digit-recognizer/test.csv")
+  train = pd.read_csv("../input/digit-recognizer/train.csv")
+  train_y = train['label']
+  train_x = train.drop('label', axis=1)
   
-      test_data = pd.read_csv('test.csv')
-      test_X = test_data.iloc[:, 1:]
-      # 将male和female转为1和0
-      test_X.iloc[:, 0] = labelencoder_X.transform(test_X.iloc[:, 0])
-      test_X = test_X.values
-      return train_X, cv_X, train_Y, cv_Y, test_X
+  # 查看数据前几行预览
+  print(train_x.head())
+  # 查看数据集详情
+  print(train_x.describe())
+  # 查看某一列的数据集分布
+  print(train_x['pixel0'].value_counts())
+  # 查看某一列的数据集分布图
+  sns.countplot(train_y)
+  # 对特定某行转化为1和0
+  train_x['Sex'] = pd.factorize(train_x.Sex)[0]
+  # 查看nan
+  print("train_x describe: \n", train_x.isnull().any().describe())
+  print("\ntest_x describe: \n", test_x.isnull().any().describe())
+  print("\ntrain_y describe: \n", train_y.value_counts())
+  sns.countplot(train_y)
+  # 将缺失数据替换为平均值
+  if np.isnan(train_x.astype(float)).sum() > 0:
+      print("NaN exists in train_X.")
+      train_x = train_x.fillna(train_x.mean())
   
-  def normalization(train_X, cv_X, test_X):
-      '''
-      归一化
-      :param train_X: 训练集特征
-      :param cv_X: 交叉验证集特征
-      :param test_X：测试集特征
-      :return: 归一化后的训练集特征、交叉验证集特征和测试集特征
-      '''
-      sc_X = StandardScaler()
-      normal_train_X = sc_X.fit_transform(train_X)
-      normal_cv_X = sc_X.transform(cv_X)
-      normal_test_X = sc_X.transform(test_X)
-      return normal_train_X, normal_cv_X, normal_test_X
+  # 归一化
+  train_x /= 255
+  test_x /= 255
   
-  if __name__ == '__main__':
-      train_X, cv_X, train_Y, cv_Y, test_X = load_data()
-      normal_train_X, normal_cv_X, normal_test_X = normalization(train_X, cv_X, test_X)
+  # 改变维度
+  train_x = train_x.values.reshape(-1, 1, 28, 28)
+  test_x = test_x.values.reshape(-1, 1, 28, 28)
   
-      best_k = cv_classify(normal_train_X, train_Y, normal_cv_X, cv_Y)
-      predict_test_Y = classify(normal_train_X, train_Y, normal_test_X, best_k)
-      print("--------------")
-      print("Predict Test Dataset:")
-      print(predict_test_Y)
-      pd.DataFrame(predict_test_Y).to_csv('submission.csv', index=False, encoding='utf8', header=False)
+  # 划分训练集和验证集。为防止数据不均衡，设置stratify可以保证训练集和验证集里各类比例相同
+  train_x, validation_x, train_y, validation_y = train_test_split(train_x, train_y, test_size=0.1, stratify=train_y)
+  
+  # 对y从0-9转化为独热码，结果为np.array
+  train_Y = to_categorical(train_Y, num_classes = 10)
+  validation_y = to_categorical(cv_Y, num_classes = 10)
+  
+  # cpu or gpu
+  device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+  
+  # 数据变为tensor
+  train_x = torch.FloatTensor(np.array(train_x)).to(device)
+  validation_x = torch.FloatTensor(np.array(validation_x)).to(device)
+  test_x = torch.FloatTensor(np.array(test_x)).to(device)
+  train_y = torch.LongTensor(np.array(train_y)).to(device)
+  validation_y = torch.LongTensor(np.array(validation_y)).to(device)
+  
+  # 定义参数
+  num_epochs = 10
+  num_classes = 10
+  learning_rate = 0.01
+  batch_size = 100
+  
+  # 分batch
+  train_dataset = torch.utils.data.TensorDataset(train_x, train_y)
+  validation_dataset = torch.utils.data.TensorDataset(validation_x, validation_y)
+  test_dataset = torch.utils.data.TensorDataset(test_x)
+  
+  train_loader = torch.utils.data.DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
+  validation_loader = torch.utils.data.DataLoader(dataset=validation_dataset, batch_size=batch_size, shuffle=False)
+  test_loader = torch.utils.data.DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=False)
+  
+  # 定义模型（CNN）
+  class ConvNet(nn.Module):
+      def __init__(self, num_classes):
+          super(ConvNet, self).__init__()
+          # 28*28*1
+          self.layer1 = nn.Sequential(
+              nn.Conv2d(in_channels=1, out_channels=8, kernel_size=7, stride=1, padding=3),  # 28*28*8
+              nn.BatchNorm2d(8),
+              nn.ReLU(),
+              nn.MaxPool2d(kernel_size=2, stride=2),  # 14*14*8
+              nn.Dropout(0.5))
+  
+          self.layer2 = nn.Sequential(
+              nn.Conv2d(in_channels=8, out_channels=16, kernel_size=7, stride=1, padding=3),  # 14*14*16
+              nn.BatchNorm2d(16),
+              nn.ReLU(),
+              nn.MaxPool2d(kernel_size=2, stride=2),  # 7*7*16
+              nn.Dropout(0.5))
+  
+          self.fc = nn.Linear(7*7*16, num_classes)
+  
+      def forward(self, x):
+          out = self.layer1(x)
+          out = self.layer2(out)
+          out = out.reshape(out.size(0), -1)  # 即将batch*7*7*32的数据集改为batch*(7*7*32)的大小，进入全连接层
+          out = self.fc(out)
+          return out
+  
+  # 实例化模型
+  model = ConvNet(num_classes).to(device)
+  criterion = nn.CrossEntropyLoss()
+  optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+  train_losses = []
+  total_train_step = len(train_loader)
+  total_validation_step = len(validation_loader)
+  
+  # 训练和验证
+  for epoch in range(num_epochs):
+      correct = 0
+      for step, (train_x, train_y) in enumerate(train_loader):
+          train_x, train_y = train_x.to(device), train_y.to(device)
+          model.train()
+          outputs = model(train_x)
+          train_loss = criterion(outputs, train_y)
+          correct += (torch.max(outputs, 1)[1] == train_y).sum().item()
+  
+          optimizer.zero_grad()
+          train_loss.backward()
+          optimizer.step()
+          
+          if (step + 1) % 100 == 0:
+              print("step[{}/{}], loss:{:.4f}".format(step + 1, total_train_step, train_loss))
+  
+      train_losses.append(train_loss.item())
+      train_acc = correct / (total_train_step * batch_size)
+              
+      model.eval()
+      correct = 0
+      for step, (validation_x, validation_y) in enumerate(validation_loader):
+          validation_x, validation_y = validation_x.to(device), validation_y.to(device)
+          outputs = model(validation_x)
+          validation_loss = criterion(outputs, validation_y)
+          correct += (torch.max(outputs, 1)[1] == validation_y).sum().item()
+      validation_acc = correct / (total_validation_step * batch_size)
+      print('epoch[{}/{}], train loss:{:.4f}, train acc:{:.4f}, validation loss:{:.4f}, validation acc:{:.4f}'.format(epoch + 1, num_epochs, train_loss.item(), train_acc, validation_loss.item(), validation_acc))
+  
+  # 测试
+  model.eval()
+  with torch.no_grad():
+      for step, test_x in enumerate(test_loader):
+          test_x = test_x[0].to(device)
+          output = model(test_x)
+          if not step:
+              test_y = outputs
+          else:
+              test_y = torch.cat((test_y, output), 0)
+  test_y = pd.DataFrame(torch.argmax(test_y, 1).numpy())
+  test_id = pd.DataFrame([i for i in range(1, test_y.shape[0] + 1)])
+  test_y = pd.concat([test_id, test_y], axis=1)
+  test_y.columns = ['ImageId', 'Label']
+  test_y.to_csv('submission.csv', index=False, encoding='utf8')
+  
+  # loss可视化
+  plt.plot([i + 1 for i in range(num_epochs)], train_losses, 'r-', lw=1)
+  plt.yticks([x * 0.1 for x in range(15)])
+  plt.show()
   ```
-
-
-+ 归一化
-  + **先划分后归一化，但只是用训练集进行归一化的fit**，保证不从测试集得到任何数据。在有交叉验证集的数据，也应该**只根据训练集**归一化，在交叉验证集调到最佳参数，在测试集上测试。且每一个特征独自进行归一化，保证各个特征最后都在相同量级内。
-  + 具体方法
-    + 均值-方差归一化：$x=\frac{x-\mu}{\sigma}$，结果符合标准正态分布，均值为0方差为1，最大最小值没有范围，常用于距离相关的算法如K-means。
-    + 最大-最小归一化：$x=\frac{x-x_{min}}{x_{max}-x_{min}}$，结果都在$[0,1]$范围内，常用于图像处理（都在0-255之内）。由于测试数据可能在训练集的最值之外，使用最大-最小归一化可能导致测试数据归一化后不在$[0,1]$范围内，出现问题。
-
-+ 混淆矩阵：二分类问题时可用
-
-  ![混淆矩阵](http://ww1.sinaimg.cn/large/96803f81ly1fzf7rkjiqaj20d406oglx.jpg)
-
-  ```python
-  # confusion_matrix混淆矩阵
-  from sklearn.metrics import confusion_matrix
-  cm = confusion_matrix(cv_Y, predict_cv_Y)
-  print(cm)
-  ```
-
-+ 准确率：
-
-  ![准确率](http://ww1.sinaimg.cn/large/96803f81ly1fzf7ucwtzaj207w02rt8m.jpg)
-
-  ```python
-  # 准确率
-  from sklearn.metrics import accuracy_score
-  score = accuracy_score(cv_Y, predict_cv_Y)
-  ```
-
-+ F1值：
-
-  ![F1值](http://ww1.sinaimg.cn/large/96803f81ly1fzf7y11jopj2095034t8q.jpg)
-
-  ```python
-  # f1_score， 用于二分类
-  from sklearn.metrics import f1_score
-  score = f1_score(cv_Y, predict_cv_Y)
-  print(cm)
-  ```
-
-+ 均方误差：
-
-  ![均方误差](http://ww1.sinaimg.cn/large/96803f81ly1fzgd80u212j207a034wed.jpg)
-
-  ```python
-  # 均方误差MSE
-  from sklearn.metrics import mean_squared_error
-  score = mean_squared_error(cv_Y, predict_cv_Y)
-  print(score)
-  ```
-
-+ 决定系数r2：回归问题常用
-
-  ![决定系数](http://ww1.sinaimg.cn/large/96803f81ly1fzgd9y3y8vj206i01ja9y.jpg)
-
-  ```python
-  # 决定系数，可用于回归
-  from sklearn.metrics import r2_score
-  score = r2_score(cv_Y, predict_cv_Y)
-  ```
-
-+ 过拟合解决方法
-  + dropout
-  + 正则化：利用正则化系数$\lambda$作为惩罚，以放大逻辑回归的梯度中每个$\theta$的影响，从而减小$\theta$的值，防止过拟合。$\theta_0$恒为1，不需惩罚。L1正则化是绝对值之和，L2正则化是平方和的开方，常用L2来防止过拟合。
-  + batch normalizatin：经过每一层计算，数据分布会发生变化，学习越来越困难。BN即在一个mini-batch内对数据的每个feature进行均值-方差归一化，归一化后再做一个线性变换$y=\gamma x+\beta$，通过两个可学习的参数，一定程度上保留数据原本特征。极端的情况下，$\gamma$和$\beta$就是方差和均值，数据完全还原。
-
-+ 梯度爆炸和消失：BP反传中，多个导数连乘可能导致梯度非常小，无法更新参数，导致梯度消失。同理，可能梯度非常大，导致梯度爆炸。将Sigmoid换用ReLU或LeakyReLU激活函数可解决，其正数的导数恒为1，不会带来梯度爆炸和消失。
 
 ## 贝叶斯公式
 
@@ -816,11 +850,6 @@ def classify(normal_train_X, train_Y, normal_test_X, k):
   test_y = pd.concat([test_id, test_y], axis=1)
   test_y.columns = ['PassengerId', 'Survived']
   test_y.to_csv('submission.csv', index=False, encoding='utf8')
-  
-  plt.figure(figsize=(6, 4), dpi=144)
-  plt.plot([i + 1 for i in range(num_epochs)], losses, 'r-', lw=1)
-  plt.yticks([x * 0.1 for x in range(15)])
-  plt.show()
   ```
 
 ### CNN
@@ -954,3 +983,84 @@ def classify(normal_train_X, train_Y, normal_test_X, k):
 ### xgboost
 
 + 相比GBDT，使用了正则化防止过拟合，loss采用了泰勒展开实现二阶导数而不是一阶导数，寻找最佳分割点标准是最大化Lsplit。xgboost在精度和效率上都有了提升。
+
+## Q&A
+
++ CNN的Pytorch和TF版，对于500张28\*28\*1的图片，为什么train_x.shape=(500, 1, 28, 28)？
+  + 输入格式为` (batch, channel, H, W)`，即样本数、通道数、高度、宽度
++ model在train之后，需要验证cv集，为什么反传的loss是train的而不是cv的？
+  + cv集的作用就是查看表现，由于test没有label，只能通过找一个不会用来训练、模型从没见过的数据集（即cv集）来进行验证效果，但模型还是应该根据train集来训练。
+
++ 归一化
+
+  + **先划分后归一化，但只是用训练集进行归一化的fit**，保证不从测试集得到任何数据。在有交叉验证集的数据，也应该**只根据训练集**归一化，在交叉验证集调到最佳参数，在测试集上测试。且每一个特征独自进行归一化，保证各个特征最后都在相同量级内。
+  + 具体方法
+    + 均值-方差归一化：$x=\frac{x-\mu}{\sigma}$，结果符合标准正态分布，均值为0方差为1，最大最小值没有范围，常用于距离相关的算法如K-means。
+    + 最大-最小归一化：$x=\frac{x-x_{min}}{x_{max}-x_{min}}$，结果都在$[0,1]$范围内，常用于图像处理（都在0-255之内）。由于测试数据可能在训练集的最值之外，使用最大-最小归一化可能导致测试数据归一化后不在$[0,1]$范围内，出现问题。
+
++ 混淆矩阵：二分类问题时可用
+
+  ![混淆矩阵](http://ww1.sinaimg.cn/large/96803f81ly1fzf7rkjiqaj20d406oglx.jpg)
+
+  ```python
+  # confusion_matrix混淆矩阵
+  from sklearn.metrics import confusion_matrix
+  cm = confusion_matrix(cv_Y, predict_cv_Y)
+  print(cm)
+  ```
+
++ 准确率：
+
+  ![准确率](http://ww1.sinaimg.cn/large/96803f81ly1fzf7ucwtzaj207w02rt8m.jpg)
+
+  ```python
+  # 准确率
+  from sklearn.metrics import accuracy_score
+  score = accuracy_score(cv_Y, predict_cv_Y)
+  ```
+
++ F1值：
+
+  ![F1值](http://ww1.sinaimg.cn/large/96803f81ly1fzf7y11jopj2095034t8q.jpg)
+
+  ```python
+  # f1_score， 用于二分类
+  from sklearn.metrics import f1_score
+  score = f1_score(cv_Y, predict_cv_Y)
+  print(cm)
+  ```
+
++ 均方误差：
+
+  ![均方误差](http://ww1.sinaimg.cn/large/96803f81ly1fzgd80u212j207a034wed.jpg)
+
+  ```python
+  # 均方误差MSE
+  from sklearn.metrics import mean_squared_error
+  score = mean_squared_error(cv_Y, predict_cv_Y)
+  print(score)
+  ```
+
++ 决定系数r2：回归问题常用
+
+  ![决定系数](http://ww1.sinaimg.cn/large/96803f81ly1fzgd9y3y8vj206i01ja9y.jpg)
+
+  ```python
+  # 决定系数，可用于回归
+  from sklearn.metrics import r2_score
+  score = r2_score(cv_Y, predict_cv_Y)
+  ```
+
++ 过拟合解决方法
+
+  + dropout
+  + 正则化：利用正则化系数$\lambda$作为惩罚，以放大逻辑回归的梯度中每个$\theta$的影响，从而减小$\theta$的值，防止过拟合。$\theta_0$恒为1，不需惩罚。L1正则化是绝对值之和，L2正则化是平方和的开方，常用L2来防止过拟合。
+  + batch normalizatin：经过每一层计算，数据分布会发生变化，学习越来越困难。BN即在一个mini-batch内对数据的每个feature进行均值-方差归一化，归一化后再做一个线性变换$y=\gamma x+\beta$，通过两个可学习的参数，一定程度上保留数据原本特征。极端的情况下，$\gamma$和$\beta$就是方差和均值，数据完全还原。
+
++ 梯度爆炸和消失：BP反传中，多个导数连乘可能导致梯度非常小，无法更新参数，导致梯度消失。同理，可能梯度非常大，导致梯度爆炸。将Sigmoid换用ReLU或LeakyReLU激活函数可解决，其正数的导数恒为1，不会带来梯度爆炸和消失。
+
++ loss
+
+
+  + `nn.CrossEntropyLoss(outputs, labels)`：n分类问题pred为m\*n维，y为m\*==1==维（`LongTensor`）。过程为先进行`nn.LogSoftmax()`，再`nn.NLLLoss()`，其中`nn.NLLLoss()`即为对于每个样本，`loss += -input[class]`。
+  + `nn.BCEWithLogitsLoss(outputs, labels)`：二分类问题pred为m\*n维，y为m\*==n==维独热码（`FloatTensor`）。过程为先进行`nn.Sigmoid()`，再`nn.BCELoss()`，其中`nn.BCELoss()`即为对于每个样本，求$loss=-\frac{1}{n}\Sigma_{i=0}^n(y_i\ln pred_i+(1-y_i)\ln(1-pred_i))$，总loss为$\frac{1}{m}\Sigma loss$。
