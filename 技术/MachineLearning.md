@@ -9,12 +9,14 @@
   ```python
   import torch
   import torch.nn as nn
+  import torch.utils.data
   import torch.nn.functional as F
   import pandas as pd
   import numpy as np
   import matplotlib.pyplot as plt
   from sklearn.model_selection import train_test_split
   import seaborn as sns
+  import matplotlib.pyplot as plt
   from keras.utils.np_utils import to_categorical
   
   
@@ -32,13 +34,13 @@
   print(train_x['pixel0'].value_counts())
   # 查看某一列的数据集分布图
   sns.countplot(train_y)
+  plt.show()
   # 对特定某行转化为1和0
   train_x['Sex'] = pd.factorize(train_x.Sex)[0]
   # 查看nan
   print("train_x describe: \n", train_x.isnull().any().describe())
   print("\ntest_x describe: \n", test_x.isnull().any().describe())
   print("\ntrain_y describe: \n", train_y.value_counts())
-  sns.countplot(train_y)
   # 将缺失数据替换为平均值
   if np.isnan(train_x.astype(float)).sum() > 0:
       print("NaN exists in train_X.")
@@ -55,12 +57,13 @@
   # 划分训练集和验证集。为防止数据不均衡，设置stratify可以保证训练集和验证集里各类比例相同
   train_x, validation_x, train_y, validation_y = train_test_split(train_x, train_y, test_size=0.1, stratify=train_y)
   
-  # 对y从0-9转化为独热码，结果为np.array
-  train_Y = to_categorical(train_Y, num_classes = 10)
-  validation_y = to_categorical(cv_Y, num_classes = 10)
+  # 对y从0-9转化为独热码，结果为np.array。具体是否需要独热吗，根据loss函数确定，二分类BCELoss需要，多分类CELoss不需要。
+  train_y = to_categorical(train_y, num_classes=10)
+  validation_y = to_categorical(validation_y, num_classes=10)
   
   # cpu or gpu
   device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+  print(device)
   
   # 数据变为tensor
   train_x = torch.FloatTensor(np.array(train_x)).to(device)
@@ -160,6 +163,9 @@
               test_y = outputs
           else:
               test_y = torch.cat((test_y, output), 0)
+  # 写入数据到文件
+  if torch.cuda.is_available():
+      test_y = test_y.cpu()
   test_y = pd.DataFrame(torch.argmax(test_y, 1).numpy())
   test_id = pd.DataFrame([i for i in range(1, test_y.shape[0] + 1)])
   test_y = pd.concat([test_id, test_y], axis=1)
@@ -987,10 +993,12 @@ def classify(normal_train_X, train_Y, normal_test_X, k):
 ## Q&A
 
 + CNN的Pytorch和TF版，对于500张28\*28\*1的图片，为什么train_x.shape=(500, 1, 28, 28)？
+  
   + 输入格式为` (batch, channel, H, W)`，即样本数、通道数、高度、宽度
 + model在train之后，需要验证cv集，为什么反传的loss是train的而不是cv的？
-  + cv集的作用就是查看表现，由于test没有label，只能通过找一个不会用来训练、模型从没见过的数据集（即cv集）来进行验证效果，但模型还是应该根据train集来训练。
-
+  
++ cv集的作用就是查看表现，由于test没有label，只能通过找一个不会用来训练、模型从没见过的数据集（即cv集）来进行验证效果，但模型还是应该根据train集来训练。
+  
 + 归一化
 
   + **先划分后归一化，但只是用训练集进行归一化的fit**，保证不从测试集得到任何数据。在有交叉验证集的数据，也应该**只根据训练集**归一化，在交叉验证集调到最佳参数，在测试集上测试。且每一个特征独自进行归一化，保证各个特征最后都在相同量级内。
@@ -1055,12 +1063,16 @@ def classify(normal_train_X, train_Y, normal_test_X, k):
 
   + dropout
   + 正则化：利用正则化系数$\lambda$作为惩罚，以放大逻辑回归的梯度中每个$\theta$的影响，从而减小$\theta$的值，防止过拟合。$\theta_0$恒为1，不需惩罚。L1正则化是绝对值之和，L2正则化是平方和的开方，常用L2来防止过拟合。
-  + batch normalizatin：经过每一层计算，数据分布会发生变化，学习越来越困难。BN即在一个mini-batch内对数据的每个feature进行均值-方差归一化，归一化后再做一个线性变换$y=\gamma x+\beta$，通过两个可学习的参数，一定程度上保留数据原本特征。极端的情况下，$\gamma$和$\beta$就是方差和均值，数据完全还原。
+  + batch normalizatin：经过每一层计算，数据分布会发生变化，学习越来越困难。BN即在一个mini-batch内对数据的每个feature进行均值-方差归一化，归一化后再做一个线性变换$y=\gamma x+\beta$，通过两个可学习的参数，一定程度上保留数据原本特征。极端的情况下，$\gamma$和$\beta$就是方差和均值，数据完全还原。batch_size一般塞满卡即可。
 
 + 梯度爆炸和消失：BP反传中，多个导数连乘可能导致梯度非常小，无法更新参数，导致梯度消失。同理，可能梯度非常大，导致梯度爆炸。将Sigmoid换用ReLU或LeakyReLU激活函数可解决，其正数的导数恒为1，不会带来梯度爆炸和消失。
 
 + loss
 
+    + `nn.CrossEntropyLoss(outputs, labels)`：n分类问题pred为m\*n维，y为m\*==1==维（`LongTensor`）。过程为先进行`nn.LogSoftmax()`，再`nn.NLLLoss()`，其中`nn.NLLLoss()`即为对于每个样本，`loss += -input[class]`。
+    + `nn.BCEWithLogitsLoss(outputs, labels)`：二分类问题pred为m\*n维，y为m\*==n==维独热码（`FloatTensor`）。过程为先进行`nn.Sigmoid()`，再`nn.BCELoss()`，其中`nn.BCELoss()`即为对于每个样本，求$loss=-\frac{1}{n}\Sigma_{i=0}^n(y_i\ln pred_i+(1-y_i)\ln(1-pred_i))$，总loss为$\frac{1}{m}\Sigma loss$。
 
-  + `nn.CrossEntropyLoss(outputs, labels)`：n分类问题pred为m\*n维，y为m\*==1==维（`LongTensor`）。过程为先进行`nn.LogSoftmax()`，再`nn.NLLLoss()`，其中`nn.NLLLoss()`即为对于每个样本，`loss += -input[class]`。
-  + `nn.BCEWithLogitsLoss(outputs, labels)`：二分类问题pred为m\*n维，y为m\*==n==维独热码（`FloatTensor`）。过程为先进行`nn.Sigmoid()`，再`nn.BCELoss()`，其中`nn.BCELoss()`即为对于每个样本，求$loss=-\frac{1}{n}\Sigma_{i=0}^n(y_i\ln pred_i+(1-y_i)\ln(1-pred_i))$，总loss为$\frac{1}{m}\Sigma loss$。
++ 激活函数：加入非线性运算，否则所有全连接层合并后等价于一个线性变换
+  + ReLU速度快。
+  + ReLU效果不好时，尝试LeakyReLU或Maxout。
+  + 模型不深，激活函数作用不大。
