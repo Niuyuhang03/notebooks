@@ -1,5 +1,3 @@
-msg='auto_update'
 git add .
-git commit -m '$(msg)'
+git commit -m 'auto_update'
 git push origin master
-git status
