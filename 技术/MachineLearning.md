@@ -892,15 +892,6 @@ def classify(normal_train_X, train_Y, normal_test_X, k):
   import torchvision
   from torchvision import transforms
   
-  
-  device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-  print("device:{}".format(device))
-  
-  num_epochs = 5
-  num_classes = 10
-  batch_size = 100
-  learning_rate = 0.001
-  
   x_train = torchvision.datasets.MNIST(root='./data/', train=True, transform=transforms.ToTensor(), download=True)
   x_test = torchvision.datasets.MNIST(root='./data/', train=False, transform=transforms.ToTensor(), download=True)
   
@@ -934,44 +925,8 @@ def classify(normal_train_X, train_Y, normal_test_X, k):
           out = out.reshape(out.size(0), -1)
           out = self.fc(out)
           return out
-  
-  
-  model = ConvNet(num_classes).to(device)
-  
-  criterion = nn.CrossEntropyLoss()
-  optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-  
-  total_step = len(train_loader)
-  for epoch in range(num_epochs):
-      for i, (images, labels) in enumerate(train_loader):
-          images = images.to(device)
-          labels = labels.to(device)
-          outputs = model.forward(images)
-          loss = criterion(outputs, labels)
-  
-          optimizer.zero_grad()
-          loss.backward()
-          optimizer.step()
-  
-          if (i + 1) % 100 == 0:
-              print('Epoch[{}/{}], Step[{}/{}], Loss:{:.4f}'.format(epoch+1, num_epochs, i+1, total_step, loss.item()))
-  
-  model.eval()
-  with torch.no_grad():
-      correct = 0
-      total = 0
-      for images, labels in test_loader:
-          images = images.to(device)
-          labels = labels.to(device)
-          outputs = model(images)
-          _, predicted = torch.max(outputs.data, 1)
-          total += labels.size(0)
-          correct += (predicted == labels).sum().item()
-  
-      print('Test Accuracy of the model on the 10000 test images: {} %'.format(100 * correct / total))
-      torch.save(model.state_dict(), 'model.ckpt')
   ```
-
+  
 + CNN为什么可用于CV，NLP，speech等领域：以上领域都存在局部和整体的关系，低层次特征组合为高层次特征的共性。CNN通过卷积、池化等实现此共性。
 
 ## 集成学习
