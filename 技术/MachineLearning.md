@@ -6,6 +6,8 @@
 
 + 数据处理：读取数据，将非数值数据编码，处理丢失数据，拆分数据集为训练集、验证集和测试集，归一化。
   
++ Pytorch模型
+  
   ```python
   import torch
   import torch.nn as nn
@@ -180,7 +182,7 @@
 
 ## 贝叶斯公式
 
-+ 后验概率$P(w_i|x)=\frac{P(x|w_i)P(w_i)}{P(x)}$，$P(w_i)$为先验概率。对于朴素贝叶斯，假设各个特征之间独立且相同重要，在现实世界不可能，故朴素。
++ 后验概率$P(w_i|x)=\frac{P(x|w_i)P(w_i)}{P(x)}$，$P(w_i)$为先验概率。已知是黑人x，求是非洲人wi概率：$P(非洲人|黑人)=P(非洲人)*\frac{P(黑人|非洲人)}{P(黑人)}$，$P(非洲人)$是先验概率。对于朴素贝叶斯，假设各个特征之间独立且相同重要，在现实世界不可能，故朴素。
 + 概率模型不需要归一化。
 
 ## 分类
@@ -993,7 +995,7 @@ def classify(normal_train_X, train_Y, normal_test_X, k):
   print(cm)
   ```
 
-+ 均方误差：
++ 均方误差MSE：
 
   ![均方误差](http://ww1.sinaimg.cn/large/96803f81ly1fzgd80u212j207a034wed.jpg)
 
@@ -1031,3 +1033,6 @@ def classify(normal_train_X, train_Y, normal_test_X, k):
   + ReLU速度快。
   + ReLU效果不好时，尝试LeakyReLU或Maxout。
   + 模型不深，激活函数作用不大。
+
++ 优化器：
+    + Adam：为每一个参数适应性地保留1个学习率，不向SGD一样学习速率不变
