@@ -1,28 +1,73 @@
 # git常用指令
 
-```bash
-从github克隆项目到本地
-在正确的本地路径下
-git clone git@github.com:rRetr0Git/rateMyCourse.git
+## git安装和初始化
 
+```bash
+查看是否安装
+git
+
+安装git，推荐从homebrew安装。安装homebrew
+/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+
+安装git
+brew install git
+
+配置你的用户名和邮箱，否则每次提交都要输入
+git config --global user.name "xxxxxx"
+git config --global user.email "xxxxx@xxx.com"
+
+配置ssh key，这个key在一台电脑上每个git账户有一个key，因此命名推荐可以识别出哪台设备
+ssh-keygen -t rsa -C "xxxxxx@xxxxx.com"
+
+复制.ssh/id_rsa.pub的内容，打开github网页的settings里的ssh key部分，新建，粘贴
+
+验证连接，出现successfully即可
+ssh -T git@github.com
+```
+
+## 创建项目
+
++ github网页创建项目，clone
+
+```bash
+git clone git@github.com:rRetr0Git/rateMyCourse.git
+```
+
++ 在本地创建新项目
+
+```bash
+git init
+
+修改
+
+add commit push
+```
+
+## 分支管理
+
+```bash
 查看本地分支
 git branch
 
 查看本地和远程分支
 git branch -a
 
-切换本地分支xxx
+切换到本地分支xxx
 git checkout xxx
+
+拉取远程分支xxx并切换过去
+git checkout -b xxx origin/xxx
 
 创建新本地分支xxx
 git branch xxx
 
 创建新本地分支xxx并切换过去
 git checkout -b xxx
+```
 
-拉取远程分支xxx并切换过去
-git checkout -b xxx origin/xxx
+## 项目提交
 
+```bash
 查看本地文件状态
 git status
 
