@@ -1,49 +1,9 @@
-# git分支管理
+# git常用指令
 
-## 撤销
-
-+ 撤销修改
 ```bash
-git checkout filename
-```
-
-+ 撤销add，保留修改
-```bash
-git reset HEAD filename
-```
-
-+ 撤销commit
-```bash
-git log # 查上一commit版本号commitid
-git reset --mixed commitid # 撤销commit，不撤销add，--mixed可省略
-git reset --soft commitid # 撤销commit和add，不撤销修改
-git reset --hard commitid # 撤销commmit、add和修改，重置到之前某一commit状态
-```
-
-+ 删除远程文件，但不删除本地文件
-```bash
-git rm -n --cached xxx  # -n参数显示预览，不执行删除
-git rm --cached xxx
-vi .gitignore
-commit push
-```
-
-## git速度慢
-+ 首先修改hosts，win下管理员打开git bash，进入/etc/hosts；mac下sudo vi /etc/hosts。增加如下行：（其中ip不要直接复制，要从https://www.ipaddress.com/上查找）
-```bash
-151.101.77.194  github.global.ssl.fastly.net
-13.229.188.59   github.com
-185.199.109.153 assets-cdn.github.com
-151.101.76.249  global-ssl.fastly.net
-```
-+ 立即刷新hosts，win下ipconfig /flushdns，mac关闭终端
-+ 连接手机热点，clone或push速度应该为1-2MB/s
-
-## 常用指令
-
-```
-从github克隆我们的项目到本地
-在正确的本地路径下git clone git@github.com:rRetr0Git/rateMyCourse.git
+从github克隆项目到本地
+在正确的本地路径下
+git clone git@github.com:rRetr0Git/rateMyCourse.git
 
 查看本地分支
 git branch
@@ -77,29 +37,103 @@ git push origin xxx
 git pull origin xxx
 ```
 
+# git指令撤销
+
++ 撤销修改
+
+```bash
+git checkout filename
 ```
-add了多余文件xxx
-git reset HEAD xxx
 
-commit后发现有文件xxx忘了加入
-git add xxx
-git commit --amend
++ 撤销add，保留修改
 
-撤销本地commit到上一个commit，但保留对文件的修改
-git reset --soft HEAD^
-然后重新commit
-
-撤销push到远程xxxx分支的commit（版本号为xx，版本号通过git log查），但保留对文件的修改，并重新commit，push
-git reset --soft xx
-git push origin xxxx --force 
-然后重新add，commit，push
-
-删除远程文件
-git rm -r -n --cached xxx
-git rm -r --cached xxx
-git commit -m "xxx"
-git push origin xx
+```bash
+git reset HEAD filename
 ```
+
++ 撤销commit
+
+```bash
+git log # 查上一commit版本号commitid
+git reset --mixed commitid # 撤销commit，不撤销add，--mixed可省略
+git reset --soft commitid # 撤销commit和add，不撤销修改
+git reset --hard commitid # 撤销commmit、add和修改，重置到之前某一commit状态
+```
+
++ 删除远程文件，但不删除本地文件
+
+```bash
+git rm -n --cached xxx  # -n参数显示预览，不执行删除
+git rm --cached xxx
+vi .gitignore
+commit push
+```
+
+# git加速
+
+## 下载releases的文件太慢
+
++ 直接复制链接到迅雷
+
+## 下载整个仓库的zip太慢
+
++ 在码云gitee导入github仓库链接，在码云下载
++ 或用下述方法clone
+
+##  clone仓库太慢
+
+### 为 github使用代理
+
+如果你已经拥有代理软件，直接为 `git` 设置代理是最好的提速方法。假设本地代理地址为 `127.0.0.1：1080`（端口号详见ss或v2ray的设置中socks的端口号），那么你可以使用以下命令为 `git` 设置代理：
+
+```shell
+# 首先取消已有代理
+git config --global --unset http.proxy
+git config --global --unset https.proxy
+
+# 代理github
+git config --global http.https://github.com.proxy socks5://127.0.0.1:1080  # 端口号需要根据v2ray的sock的端口设置
+git config --global https.https://github.com.proxy socks5://127.0.0.1:1080  # 端口号需要根据v2ray的sock的端口设置
+```
+
+```python
+# 不推荐全局代理git，会将国内git变慢
+git config --global http.proxy http://127.0.0.1:1080  # 不要做
+git config --global https.proxy http://127.0.0.1:1080  # 不要做
+```
+
+==**必须使用https**方式clone，且全程开启代理软件==
+
++ 出现`LibreSSL SSL_connect: SSL_ERROR_SYSCALL in connection to github.com:443`问题，大概率为代理软件挂了，尝试更新订阅或切换节点
+
+### 修改 host 文件（不推荐）
+
+在 `git clone` 或 `git push` 时，实际上并不是直接向 `github.com` 发送请求，而是对 `github.global.ssl.fastly.net` 发送请求与通信，Fastly 公司在中国有着众多的 CDN 节点，GitHub 可能因为成本或者其他原因，并没有在中国搭设自己专属的 CDN 节点，我们可以通过修改 `host` 文件来加速对这个域名的访问。
+
+```
+# windows下修改C:\Windows\System32\drivers\etc\hosts# Linux/Mac下修改/etc/hosts# 在最后加上151.101.77.194  github.global.ssl.fastly.net13.229.188.59   github.com185.199.109.153 assets-cdn.github.com151.101.76.249  global-ssl.fastly.net
+```
+
+然后刷新 DNS 缓存。
+
+```
+# windowsipconfig /flushdns# linux/macsudo /etc/init.d/network-manager restart
+```
+
+如果网络没问题的话，修改后的速度一般都能达到 `MB/s` 的级别。
+
+# git多平台问题
+
+## mac上换行符引起`^M`问题
+
+```bash
+git config --global core.autocrlf input
+git config --global core.safecrlf true
+```
+
+其中git config可以通过`git config —list`参看，手动删除可以通过编辑`~/.gitconfig`进行修改。
+
+# git分支管理
 
 
 ## 一些约定
@@ -133,7 +167,7 @@ git push origin xx
 
 + feature分支的命名基本无要求，如“wwj”
 
-```
+```bash
 # 创建feature分支
 任意分支下git checkout -b wwj develop
 
@@ -159,7 +193,7 @@ git push origin develop
 
 + 命名必须为“release-\*”，如“release-0.2”，数字为版本号。版本号具体怎么来一般以公司dalao心情决定，一般是A.B.C的格式，A是大版本号，B是增加新功能，C是修复bug。我们发布的次数有限，我推荐直接用A.B格式，把新功能和修复bug都在B递增，预计会在网站可以完全运行时更新大版本到1.0。即从0.1,0.2...0.10,0.11,0.12....1.0,1.1,1.2这样来。
 
-```
+```bash
 # 创建release分支
 任意分支下git checkout -b release-0.1 develop
 
