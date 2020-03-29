@@ -38,7 +38,7 @@ git clone git@github.com:rRetr0Git/rateMyCourse.git
 ```bash
 git init
 
-修改
+修改代码
 
 add commit push
 ```
@@ -80,6 +80,12 @@ git push origin xxx
 
 拉取远程xxx分支的更新
 git pull origin xxx
+```
+
+## 查看项目的远程地址
+
+```bash
+git remote -v
 ```
 
 # git指令撤销
@@ -137,12 +143,12 @@ git config --global --unset http.proxy
 git config --global --unset https.proxy
 
 # 代理github
-git config --global http.https://github.com.proxy socks5://127.0.0.1:1080  # 端口号需要根据v2ray的sock的端口设置
-git config --global https.https://github.com.proxy socks5://127.0.0.1:1080  # 端口号需要根据v2ray的sock的端口设置
+git config --global http.https://github.com.proxy socks5://127.0.0.1:1080  # 端口号需要根据v2ray的sock的端口设置，mac默认为1080
+git config --global https.https://github.com.proxy socks5://127.0.0.1:1080  # 端口号需要根据v2ray的sock的端口设置，mac默认为1080
 ```
 
 ```python
-# 不推荐全局代理git，会将国内git变慢
+# 不推荐不推荐不推荐不推荐不推荐全局代理git，会将国内git变慢
 git config --global http.proxy http://127.0.0.1:1080  # 不要做
 git config --global https.proxy http://127.0.0.1:1080  # 不要做
 ```
@@ -150,22 +156,6 @@ git config --global https.proxy http://127.0.0.1:1080  # 不要做
 ==**必须使用https**方式clone，且全程开启代理软件==
 
 + 出现`LibreSSL SSL_connect: SSL_ERROR_SYSCALL in connection to github.com:443`问题，大概率为代理软件挂了，尝试更新订阅或切换节点
-
-### 修改 host 文件（不推荐）
-
-在 `git clone` 或 `git push` 时，实际上并不是直接向 `github.com` 发送请求，而是对 `github.global.ssl.fastly.net` 发送请求与通信，Fastly 公司在中国有着众多的 CDN 节点，GitHub 可能因为成本或者其他原因，并没有在中国搭设自己专属的 CDN 节点，我们可以通过修改 `host` 文件来加速对这个域名的访问。
-
-```
-# windows下修改C:\Windows\System32\drivers\etc\hosts# Linux/Mac下修改/etc/hosts# 在最后加上151.101.77.194  github.global.ssl.fastly.net13.229.188.59   github.com185.199.109.153 assets-cdn.github.com151.101.76.249  global-ssl.fastly.net
-```
-
-然后刷新 DNS 缓存。
-
-```
-# windowsipconfig /flushdns# linux/macsudo /etc/init.d/network-manager restart
-```
-
-如果网络没问题的话，修改后的速度一般都能达到 `MB/s` 的级别。
 
 # git多平台问题
 
@@ -187,7 +177,7 @@ git config --global core.safecrlf true
 
 + 任何一次commit前，请用git status查看add的文件有没有多余的。
 
-+ 任何一次出现错误的add、commit、push行为，请通知群里不要改动分支，然后处理。
++ 任何一次出现错误的add、commit、push行为，请及时通知其他人员，然后处理。
 
 ## 主分支
 
