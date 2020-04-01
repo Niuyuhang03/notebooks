@@ -161,12 +161,24 @@ git config --global https.proxy http://127.0.0.1:1080  # 不要做
 
 ## mac上换行符引起`^M`问题
 
+linux换行使用LF，Windows换行使用CRLF
+
 ```bash
-git config --global core.autocrlf input
-git config --global core.safecrlf true
+git config --global core.eol lf  # 统一换行符为 lf
+git config --global core.autocrlf false  # 将自动转换关闭,避免转换失败不能不同进行提交
+git config --global core.safecrlf true  # 禁止混用 lf 和 crlf 两种换行符
 ```
 
 其中git config可以通过`git config —list`参看，手动删除可以通过编辑`~/.gitconfig`进行修改。
+
+虽然通过设置了 git 全局参数解决了问题，但是作为团队协作的话，并不能保证所有人都正确配好了。git 提供了.gitattributes文件解决了这个问题。在项目根目录新建.gitattributes文件，添加一下内容：
+
+```bash
+# Set the default behavior, in case people don't have core.autocrlf set.
+* text eol=lf
+```
+
+通过这种方式避免有人没有设置 core.autocrlf 参数，并且将该文件加入版本控制中。
 
 # git分支管理
 
