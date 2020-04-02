@@ -888,47 +888,47 @@ def classify(normal_train_X, train_Y, normal_test_X, k):
 
 + 全连接层：计算梯度，反向传播更新权重。
 
-+ ```python
-  import torch
-  import torch.nn as nn
-  import torchvision
-  from torchvision import transforms
-  
-  x_train = torchvision.datasets.MNIST(root='./data/', train=True, transform=transforms.ToTensor(), download=True)
-  x_test = torchvision.datasets.MNIST(root='./data/', train=False, transform=transforms.ToTensor(), download=True)
-  
-  train_loader = torch.utils.data.DataLoader(dataset=x_train, batch_size=batch_size, shuffle=True)
-  test_loader = torch.utils.data.DataLoader(dataset=x_test, batch_size=batch_size, shuffle=False)
-  
-  
-  class ConvNet(nn.Module):
-      def __init__(self, num_classes):
-          super(ConvNet, self).__init__()
-          # 28*28*1
-          self.layer1 = nn.Sequential(
-              nn.Conv2d(in_channels=1, out_channels=16, kernel_size=7, stride=1, padding=3),  # 28*28*16
-              nn.BatchNorm2d(16),
-              nn.ReLU(),
-              nn.MaxPool2d(kernel_size=2, stride=2),  # 14*14*16
-              nn.Dropout(0.5))
-  
-          self.layer2 = nn.Sequential(
-              nn.Conv2d(in_channels=16, out_channels=32, kernel_size=7, stride=1, padding=3),  # 14*14*32
-              nn.BatchNorm2d(32),
-              nn.ReLU(),
-              nn.MaxPool2d(kernel_size=2, stride=2),  # 7*7*32
-              nn.Dropout(0.5))
-  
-          self.fc = nn.Linear(7*7*32, num_classes)
-  
-      def forward(self, x):
-          out = self.layer1(x)
-          out = self.layer2(out)
-          out = out.reshape(out.size(0), -1)
-          out = self.fc(out)
-          return out
-  ```
-  
+    ```python
+    import torch
+    import torch.nn as nn
+    import torchvision
+    from torchvision import transforms
+    
+    x_train = torchvision.datasets.MNIST(root='./data/', train=True, transform=transforms.ToTensor(), download=True)
+    x_test = torchvision.datasets.MNIST(root='./data/', train=False, transform=transforms.ToTensor(), download=True)
+    
+    train_loader = torch.utils.data.DataLoader(dataset=x_train, batch_size=batch_size, shuffle=True)
+    test_loader = torch.utils.data.DataLoader(dataset=x_test, batch_size=batch_size, shuffle=False)
+    
+    
+    class ConvNet(nn.Module):
+        def __init__(self, num_classes):
+            super(ConvNet, self).__init__()
+            # 28*28*1
+            self.layer1 = nn.Sequential(
+                nn.Conv2d(in_channels=1, out_channels=16, kernel_size=7, stride=1, padding=3),  # 28*28*16
+                nn.BatchNorm2d(16),
+                nn.ReLU(),
+                nn.MaxPool2d(kernel_size=2, stride=2),  # 14*14*16
+                nn.Dropout(0.5))
+    
+            self.layer2 = nn.Sequential(
+                nn.Conv2d(in_channels=16, out_channels=32, kernel_size=7, stride=1, padding=3),  # 14*14*32
+                nn.BatchNorm2d(32),
+                nn.ReLU(),
+                nn.MaxPool2d(kernel_size=2, stride=2),  # 7*7*32
+                nn.Dropout(0.5))
+    
+            self.fc = nn.Linear(7*7*32, num_classes)
+    
+        def forward(self, x):
+            out = self.layer1(x)
+            out = self.layer2(out)
+            out = out.reshape(out.size(0), -1)
+            out = self.fc(out)
+            return out
+    ```
+
 + CNN为什么可用于CV，NLP，speech等领域：以上领域都存在局部和整体的关系，低层次特征组合为高层次特征的共性。CNN通过卷积、池化等实现此共性。
 
 ## 集成学习
@@ -1035,4 +1035,5 @@ def classify(normal_train_X, train_Y, normal_test_X, k):
   + 模型不深，激活函数作用不大。
 
 + 优化器：
+    
     + Adam：为每一个参数适应性地保留1个学习率，不向SGD一样学习速率不变
