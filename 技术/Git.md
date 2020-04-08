@@ -196,9 +196,8 @@ git config --global core.safecrlf true  # 禁止混用 lf 和 crlf 两种换行�
 # Mac git 自动补全
 
 + 安装homebrew：`/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"`
-
 + 安装bash-completion：`brew install bash-completion`
-
++ 访问`https://github.com/git/git.git`，找到`contrib/completion/git-completion.bash`，复制到`~/.git-completion.bash`
 + 将如下代码添加到`~/.bash_profile`（不存在则创建）：
 
 ```bash
