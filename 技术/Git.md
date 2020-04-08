@@ -23,6 +23,11 @@ ssh-keygen -t rsa -C "xxxxxx@xxxxx.com"
 
 验证连接，出现successfully即可
 ssh -T git@github.com
+
+mac电脑需要配置换行符（如果同时有mac和win一起开发，需要统一为mac的格式）
+git config --global core.eol lf  # 统一换行符为 lf
+git config --global core.autocrlf input  # 打开push时自动转换关闭，保证push时一定是lf
+git config --global core.safecrlf true  # 禁止混用lf 和 crlf 两种换行符，混用时禁止提交
 ```
 
 ## 创建项目
@@ -63,6 +68,12 @@ git branch xxx
 
 创建新本地分支xxx并切换过去
 git checkout -b xxx
+
+查看关联的远程分支
+git branch -vv
+
+关联远程分支
+git branch -u origin/远程分支名
 ```
 
 ## 项目提交
@@ -106,9 +117,9 @@ git reset HEAD filename
 
 ```bash
 git log # 查上一commit版本号commitid
-git reset --mixed commitid # 撤销commit，不撤销add，--mixed可省略
-git reset --soft commitid # 撤销commit和add，不撤销修改
-git reset --hard commitid # 撤销commmit、add和修改，重置到之前某一commit状态
+git reset --mixed commitid # 撤销commitid之后的commit，不撤销add，--mixed可省略
+git reset --soft commitid # 撤销commitid之后的commit和add，不撤销修改
+git reset --hard commitid # 撤销commmitid之后的commit、add和修改，重置到之前某一commit状态
 ```
 
 + 删除远程文件，但不删除本地文件
@@ -157,15 +168,15 @@ git config --global https.proxy http://127.0.0.1:1080  # 不要做
 
 + 出现`LibreSSL SSL_connect: SSL_ERROR_SYSCALL in connection to github.com:443`问题，大概率为代理软件挂了，尝试更新订阅或切换节点
 
-# git多平台问题
+# git多平台问题（win不要用）
 
 ## mac上换行符引起`^M`问题
 
-linux换行使用LF，Windows换行使用CRLF
+linux换行使用LF，Windows换行使用CRLF，即\r\n，在mac使用cat -e filename中可以看到^M\$即为crlf，\$即为lf。mac配置如下
 
 ```bash
 git config --global core.eol lf  # 统一换行符为 lf
-git config --global core.autocrlf false  # 将自动转换关闭,避免转换失败不能不同进行提交
+git config --global core.autocrlf input  # 打开push时自动转换关闭，保证push时一定是lf
 git config --global core.safecrlf true  # 禁止混用 lf 和 crlf 两种换行符
 ```
 
@@ -179,6 +190,24 @@ git config --global core.safecrlf true  # 禁止混用 lf 和 crlf 两种换行�
 ```
 
 通过这种方式避免有人没有设置 core.autocrlf 参数，并且将该文件加入版本控制中。
+
+如果已经出现crlf，批量转换为lf，需要在brew安装dos2unix，然后`find . -name "*" | xargs dos2unix`
+
+# Mac git 自动补全
+
++ 安装homebrew：`/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"`
+
++ 安装bash-completion：`brew install bash-completion`
+
++ 将如下代码添加到`~/.bash_profile`（不存在则创建）：
+
+```bash
+if [ -f ~/.git-completion.bash ]; then
+   . ~/.git-completion.bash
+fi
+```
+
++ 由于新的mac已经将zsh作为默认shell，如果打开terminal后最上面不是bash而是zsh，则不会自动在启动terminal时执行`source ~/.bash_profile`，而是`source ~/.zshrc`，故修改`~/.zshrc`，加入`source ~/.bash_profile`
 
 # git分支管理
 
