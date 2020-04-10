@@ -10,6 +10,7 @@
 
 + 使用xshell访问`192.168.5.201`管理节点，管理节点下不可直接运行程序，需要通过sbatch或srun提交
 + linux使用ssh user@192.168.5.201访问
++ 校外使用d.buaa.edu.cn，ssh连接219.224.171.201访问。http使用gitlab.act.buaa.edu.cn访问gitlab。
 
 ## 配置环境
 
@@ -83,6 +84,7 @@
 
     ```
     top
+    htop
     http://192.168.5.201/gpustat/current.log
     ```
 
