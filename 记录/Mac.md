@@ -2,19 +2,35 @@
 
 ## 技巧
 
++ ctrl和command
+    + command：替代win中所有ctrl操作。在terminal中，command+C复制
+    + ctrl：在terminal中，ctrl+C结束进程，ctrl+R搜素
 + finder复制路径：option+command+c
-
 + spotlight搜索：command+space
++ 关闭软件：command+W
++ 输入法切换：caps lock
+
++ 大小写：shift+字母，或长按caps lock
++ 修改默认打开方式：option+右键-默认打开方式
 
 + Markdown：
 
     + 页内跳转：`[](# xxx)`，注意必须只用一个#
 
-    + 数学公式
+    + 操作
+
+        + ==高亮==：`==高亮==`，快捷键command+Shift+H
+        + **加粗**：`**加粗**`
+        + *斜体*：`*斜体*`
+
+    + 公式
 
         | 公式               | 效果                                       | markdown原文                                 |
         | ------------------ | ------------------------------------------ | -------------------------------------------- |
-        | 行内公式           | $公式$                                     | \$公式\$                                     |
+        | 行内公式           | `行内公式`                                 | \`行内公式\`                                 |
+        | 行间公式           | ```行间公式```                             | \`\`\`行间公式\`\`\`                         |
+        | 引用               | > 引用                                     | \> 引用                                      |
+        | 行内数学公式       | $公式$                                     | \$公式\$                                     |
         | 上下角标           | $a^2,a^{22},a_2,a_{22}$                    | \$a^2,a^{22},a_2,a_{22}\$                    |
         | 分数线             | $\frac{分子}{分母}$                        | \$\frac{分子}{分母}​\$                        |
         | 开方               | $\sqrt{x}$                                 | \$\sqrt{x}​\$                                 |
@@ -61,7 +77,9 @@
         | omega    | Ω    | \Omega       | ω    | \omega       |          |             |
         | psi      | Ψ    | \Psi         | ψ    | \psi         |          |             |
 
-+ Apple ID
++ VS：mac版vs无法写c
+
++ 美区Apple ID
 
     + 不可购买付费app
 
@@ -84,6 +102,7 @@
         + 填写手机号码：到 [Temporary SMS and Disposable Numbers](https://link.zhihu.com/?target=https%3A//smsreceivefree.com/) （或Google “disposable number”）可以提供一个美国的虚拟手机号码，可以收到短信验证码。不需要写美国的国家代码 +1。有些号码会提示invalid phone number，换一个再试
 
     + 验证账号
+
         + 打开手机上的app store，应该会自动变成美国区商店（英文）
         + 在美国区的app store里面，随便选择一个免费app下载。然后会提示让你登陆，选择use an existing apple id
 
@@ -211,6 +230,14 @@
     + `recipe terminated with fatal error: spawn xelatex enoent`：重启vs code，关闭时叉掉进程。
     + `Recipe terminated with error.`：查看vs code的compile log文件，可以发现如`! LaTeX Error: 'File multirow.sty' not found.`的错误，即缺少multirow宏，使用`sudo tlmgr install xxx`安装
 
+### Endnote x9
+
++ 下载Endnote后，word会多一栏endnote
++ 在endnote中file-new新建文献仓库，推荐一个论文的所有文献放在一个仓库
++ 编辑-输出样式-打开样式管理器，查看是否有GBT7714，没有需要在[Chinese Standard GBT7714 (numeric)](https://endnote.com/style_download/chinese-standard-gb-t7714-numeric/)下载，双击打开，file-save as，起名Chinese Standard GBT7714 (numeric)，再去样式管理器，选中这个格式
++ 在word的endnote插件界面，样式改成GBT7714
++ 打开跳转：word的endnote插件界面，configure bibliography，选中link in-text项目。这个动作只能让本.doc有效，下一篇.doc还需操作
+
 ### 其他常用软件清单
 
 + One Switch
@@ -228,6 +255,7 @@
 + 坚果云
 + Chrome
 + eZip
++ Pycharm
 + 微信
 + QQ
 + 迅雷
