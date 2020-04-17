@@ -13,6 +13,14 @@
 + 大小写：shift+字母，或长按caps lock
 + 修改默认打开方式：option+右键-默认打开方式
 
++ bash & zsh
+
+    + bash
+        + `.bash_profile`系统启动时执行，因此主要为全局设置
+        + `.bashrc`打开shell时执行，因此主要为用户设置
+    + zsh
+        + 新版本mac默认使用zsh，且不存在`.zsh_profile`，而是只有`.zshrc`。在使用zsh时，bash相关的环境不会执行。因此有必要时，要在`.zshrc`里调用`source .bash_profile`。
+
 + Markdown：
 
     + 页内跳转：`[](# xxx)`，注意必须只用一个#
@@ -124,6 +132,10 @@
 + 卸载
     + `brew uninstall xxx`
     + `brew cask uninstall xxx`
+
+### Python3
+
++ `brew search python3`
 
 ### [Git](https://github.com/Niuyuhang03/notebooks/blob/master/技术/Git.md)
 
