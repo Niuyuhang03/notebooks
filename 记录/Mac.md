@@ -5,13 +5,20 @@
 + ctrl和command
     + command：替代win中所有ctrl操作。在terminal中，command+C复制
     + ctrl：在terminal中，ctrl+C结束进程，ctrl+R搜素
+    
 + finder复制路径：option+command+c
+
 + spotlight搜索：command+space
+
 + 关闭软件：command+W
+
 + 输入法切换：caps lock
 
 + 大小写：shift+字母，或长按caps lock
+
 + 修改默认打开方式：option+右键-默认打开方式
+
++ 修改dock速度：`defaults write com.apple.Dock autohide-delay -float 0 && killall Dock`。重置dock速度：`defaults delete com.apple.Dock autohide-delay && killall Dock`
 
 + bash & zsh
 
@@ -250,18 +257,24 @@
 + 在word的endnote插件界面，样式改成GBT7714
 + 打开跳转：word的endnote插件界面，configure bibliography，选中link in-text项目。这个动作只能让本.doc有效，下一篇.doc还需操作
 
+### Typora
+
++ 下载：官网
++ 图床：uPic作为Typora自动上传到图床服务商的软件，`brew cask install upic`，在Typora的设置-图像-自动上传服务，选择uPic，配置uPic的系统偏好设置-扩展-访达扩展权限。可实现在Typora加入本地图片时自动上传，并将图片链接更换为url。
+
+### VS Code
+
++ 主题选择one dark pro
+
 ### 其他常用软件清单
 
 + One Switch
-
 + 自动切换输入法
 + Megnet
-+ TinkerTool：修改程序坞下降速度
 + Tencent Lemon
-+ VS Code
++ Bartender
 + Adobe Acrobat
 + Sublime
-+ Typora
 + Office
 + Endnote
 + 坚果云
