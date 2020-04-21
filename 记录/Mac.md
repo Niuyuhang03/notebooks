@@ -2,9 +2,9 @@
 
 ## 技巧
 
-+ ctrl和command
-    + command：替代win中所有ctrl操作。在terminal中，command+C复制
-    + ctrl：在terminal中，ctrl+C结束进程，ctrl+R搜素
++ terminal中的ctrl和command
+    + command：command+C复制，command+V复制
+    + ctrl：ctrl+C结束进程，ctrl+R搜素
     
 + finder复制路径：option+command+c
 
