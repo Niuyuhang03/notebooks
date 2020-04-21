@@ -273,7 +273,6 @@
 + Megnet
 + Tencent Lemon
 + Bartender
-+ Adobe Acrobat
 + Sublime
 + Office
 + Endnote
