@@ -6,7 +6,7 @@
 
 + 数据处理：读取数据，将非数值数据编码，处理丢失数据，拆分数据集为训练集、验证集和测试集，归一化。
   
-+ Pytorch模型
++ Pytorch模型：注意cuda()位置为数据（not inplace）和模型（inplace）都需要
   
   ```python
   import torch
@@ -64,15 +64,17 @@
   validation_y = to_categorical(validation_y, num_classes=10)
   
   # cpu or gpu
-  device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-  print(device)
+  args.cuda = not args.no_cuda and torch.cuda.is_available()
+  print(args)
+  if not args.cuda:
+      exit()
   
   # 数据变为tensor
-  train_x = torch.FloatTensor(np.array(train_x)).to(device)
-  validation_x = torch.FloatTensor(np.array(validation_x)).to(device)
-  test_x = torch.FloatTensor(np.array(test_x)).to(device)
-  train_y = torch.LongTensor(np.array(train_y)).to(device)
-  validation_y = torch.LongTensor(np.array(validation_y)).to(device)
+  train_x = torch.FloatTensor(np.array(train_x)).cuda()
+  validation_x = torch.FloatTensor(np.array(validation_x)).cuda()
+  test_x = torch.FloatTensor(np.array(test_x)).cuda()
+  train_y = torch.LongTensor(np.array(train_y)).cuda()
+  validation_y = torch.LongTensor(np.array(validation_y)).cuda()
   
   # 定义参数
   num_epochs = 10
@@ -118,7 +120,9 @@
           return out
   
   # 实例化模型
-  model = ConvNet(num_classes).to(device)
+  model = ConvNet(num_classes)
+  if args.cuda:
+      model.cuda()
   criterion = nn.CrossEntropyLoss()
   optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
   train_losses = []
@@ -129,7 +133,8 @@
   for epoch in range(num_epochs):
       correct = 0
       for step, (train_x, train_y) in enumerate(train_loader):
-          train_x, train_y = train_x.to(device), train_y.to(device)
+          if args.cuda:
+              train_x, train_y = train_x.cuda(), train_y.cuda()
           model.train()
           outputs = model(train_x)
           train_loss = criterion(outputs, train_y)
@@ -148,7 +153,8 @@
       model.eval()
       correct = 0
       for step, (validation_x, validation_y) in enumerate(validation_loader):
-          validation_x, validation_y = validation_x.to(device), validation_y.to(device)
+          if args.cuda:
+          	validation_x, validation_y = validation_x.cuda(), validation_y.cuda()
           outputs = model(validation_x)
           validation_loss = criterion(outputs, validation_y)
           correct += (torch.max(outputs, 1)[1] == validation_y).sum().item()
@@ -159,7 +165,8 @@
   model.eval()
   with torch.no_grad():
       for step, test_x in enumerate(test_loader):
-          test_x = test_x[0].to(device)
+          if args.cuda:
+          	test_x = test_x[0].cuda()
           output = model(test_x)
           if not step:
               test_y = outputs
