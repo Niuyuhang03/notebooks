@@ -1033,7 +1033,7 @@ def classify(normal_train_X, train_Y, normal_test_X, k):
 
 + loss
 
-    + `nn.CrossEntropyLoss(outputs, labels)`：n分类问题pred为m\*n维，y为m\*==1==维（`LongTensor`）。过程为先进行`nn.LogSoftmax()`，再`nn.NLLLoss()`，其中`nn.NLLLoss()`即为对于每个样本，`loss += -input[class]`。
+    + `nn.CrossEntropyLoss(outputs, labels)`：n分类问题pred为m\*n维，y为m\*==1==维（`LongTensor`）。过程为先进行`nn.LogSoftmax()`，再`nn.NLLLoss()`，其中`nn.NLLLoss()`即为对于每个样本，`loss += -pred[class]`，最后对loss求均值。
     + `nn.BCEWithLogitsLoss(outputs, labels)`：二分类问题pred为m\*n维，y为m\*==n==维独热码（`FloatTensor`）。过程为先进行`nn.Sigmoid()`，再`nn.BCELoss()`，其中`nn.BCELoss()`即为对于每个样本，求$loss=-\frac{1}{n}\Sigma_{i=0}^n(y_i\ln pred_i+(1-y_i)\ln(1-pred_i))$，总loss为$\frac{1}{m}\Sigma loss$。
 
 + 激活函数：加入非线性运算，否则所有全连接层合并后等价于一个线性变换
