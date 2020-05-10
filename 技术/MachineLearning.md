@@ -1043,4 +1043,4 @@ def classify(normal_train_X, train_Y, normal_test_X, k):
 
 + 优化器：
   
-    + Adam：为每一个参数适应性地保留1个学习率，不向SGD一样学习速率不变
+    + Adam：为每一个参数适应性地保留1个学习率，不像SGD一样学习速率不变
