@@ -23,11 +23,6 @@ ssh-keygen -t rsa -C "xxxxxx@xxxxx.com"
 
 验证连接，出现successfully即可
 ssh -T git@github.com
-
-mac电脑需要配置换行符（如果同时有mac和win一起开发，需要统一为mac的格式）
-git config --global core.eol lf  # 统一换行符为 lf
-git config --global core.autocrlf input  # 打开push时自动转换关闭，保证push时一定是lf
-git config --global core.safecrlf true  # 禁止混用lf 和 crlf 两种换行符，混用时禁止提交
 ```
 
 ## 创建项目
@@ -41,11 +36,7 @@ git clone git@github.com:rRetr0Git/rateMyCourse.git
 + 在本地创建新项目
 
 ```bash
-git init
-
-修改代码
-
-add commit push
+github网页新建项目，看指示
 ```
 
 ## 分支管理

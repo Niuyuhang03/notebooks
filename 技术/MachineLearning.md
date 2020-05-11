@@ -187,6 +187,31 @@
   plt.show()
   ```
 
+### gpu
+
++ 模型使用model.cuda()，无需model=model.cuda()。数据需要var=var.cuda()。
+
++ model.cuda()后，其init中定义的参数也变成了cuda形式，但model计算中的新定义参数还是cpu的。可以用print(var.is_cuda)检验
+
+### 多卡
+
+```python
+model = xxxx
+
+# 增加这一段
+if torch.cuda.device_count() > 1:
+    print("Using {} gpu".format(torch.cuda.device_count()))
+    model = torch.nn.DataParallel(model)
+
+model.cuda()
+```
+
+运行时`#SBATCH --gres=gpu:V100:2`即改为2个gpu，`CUDA_VISIBLE_DEVICES=0,1 python train.py`即在0号基础上增加1号gpu
+
++ 注意，forward的参数都会认为和batchsize有关，因此会被拆分给各卡，默认按第一个维度拆分。如果不想被拆分，请在模型定义时传入，模型中用self.xxx形式使用。
+
++ model.load_state_dict可能会load到一张卡上，需要解决
+
 ## 贝叶斯公式
 
 + 后验概率$P(w_i|x)=\frac{P(x|w_i)P(w_i)}{P(x)}$，$P(w_i)$为先验概率。已知是黑人x，求是非洲人wi概率：$P(非洲人|黑人)=P(非洲人)*\frac{P(黑人|非洲人)}{P(黑人)}$，$P(非洲人)$是先验概率。对于朴素贝叶斯，假设各个特征之间独立且相同重要，在现实世界不可能，故朴素。
