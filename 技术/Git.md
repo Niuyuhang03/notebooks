@@ -33,10 +33,8 @@ ssh -T git@github.com
 git clone git@github.com:rRetr0Git/rateMyCourse.git
 ```
 
-+ 在本地创建新项目
-
 ```bash
-github网页新建项目，看指示
+或在github网页新建项目，看指示
 ```
 
 ## 分支管理
@@ -51,7 +49,7 @@ git branch -a
 切换到本地分支xxx
 git checkout xxx
 
-拉取远程分支xxx并切换过去
+新建本地分支xxx并关联远程分支xxx，并切换过去
 git checkout -b xxx origin/xxx
 
 创建新本地分支xxx
@@ -60,11 +58,11 @@ git branch xxx
 创建新本地分支xxx并切换过去
 git checkout -b xxx
 
-查看关联的远程分支
+查看所有本地分支和远程分支的关联情况
 git branch -vv
 
-关联远程分支
-git branch -u origin/远程分支名
+将本地分支关联到远程xxx分支
+git branch -u origin/xxx
 ```
 
 ## 项目提交
@@ -90,7 +88,7 @@ git pull origin xxx
 git remote -v
 ```
 
-# git指令撤销
+# ==git指令撤销==
 
 + 撤销修改
 
@@ -104,7 +102,7 @@ git checkout filename
 git reset HEAD filename
 ```
 
-+ 撤销commit
++ 撤销commit或pull
 
 ```bash
 git log # 查上一commit版本号commitid
@@ -201,9 +199,6 @@ fi
 
 # git分支管理
 
-
-## 一些约定
-
 + 任何一次add前，请用git branch查看所在分支是否正确，用git status查看修改的文件。
 
 + 任何一次commit前，请用git status查看add的文件有没有多余的。
@@ -234,10 +229,10 @@ fi
 + feature分支的命名基本无要求，如“wwj”
 
 ```bash
-# 创建feature分支
+# 创建名叫wwj的feature分支，该分支是从develop分出来的
 任意分支下git checkout -b wwj develop
 
-# 每次有代码更新，在feature分支提交，只commit不push
+# 每次有代码更新，在wwj的feature分支提交，只commit不push
 git add xxx
 git commit -m "xxx"
 
@@ -257,13 +252,13 @@ git push origin develop
 
 + release创建出来后到删除前，所有的bugfix请直接在release分支上修改。
 
-+ 命名必须为“release-\*”，如“release-0.2”，数字为版本号。版本号具体怎么来一般以公司dalao心情决定，一般是A.B.C的格式，A是大版本号，B是增加新功能，C是修复bug。我们发布的次数有限，我推荐直接用A.B格式，把新功能和修复bug都在B递增，预计会在网站可以完全运行时更新大版本到1.0。即从0.1,0.2...0.10,0.11,0.12....1.0,1.1,1.2这样来。
++ 命名必须为“release-\*”，如“release-0.2”，数字为版本号。版本号具体怎么来一般以公司dalao心情决定，一般是A.B.C的格式，A是大版本号，B是增加新功能，C是修复bug。发布的次数有限时，推荐直接用A.B格式，把新功能和修复bug都在B递增，预计会在网站可以完全运行时更新大版本到1.0。即从0.1,0.2...0.10,0.11,0.12....1.0,1.1,1.2这样来。
 
 ```bash
 # 创建release分支
 任意分支下git checkout -b release-0.1 develop
 
-# 在release分支下fix bug
+# 在release分支下fix bug，没有则跳过
 git branch -a
 git checkout release
 git add xxx
