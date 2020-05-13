@@ -256,6 +256,7 @@
 + 编辑-输出样式-打开样式管理器，查看是否有GBT7714，没有需要在[Chinese Standard GBT7714 (numeric)](https://endnote.com/style_download/chinese-standard-gb-t7714-numeric/)下载，双击打开，file-save as，起名Chinese Standard GBT7714 (numeric)，再去样式管理器，选中这个格式
 + 在word的endnote插件界面，样式改成GBT7714
 + 打开跳转：word的endnote插件界面，configure bibliography，选中link in-text项目。这个动作只能让本.doc有效，下一篇.doc还需操作
++ bibtex导入endnote：安装bibutils，bib2xml input.bib | xml2end > output.end
 
 ### Typora
 
