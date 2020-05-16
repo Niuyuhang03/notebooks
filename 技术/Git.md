@@ -120,6 +120,18 @@ vi .gitignore
 commit push
 ```
 
++ 版本回退
+
+```bash
+# 回退
+git log
+git reset --hard commitid
+
+# 撤销版本回退
+git reflog
+git reset --hard commitid
+```
+
 # git加速
 
 ## 下载releases的文件太慢
