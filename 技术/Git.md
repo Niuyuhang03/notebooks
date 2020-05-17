@@ -168,6 +168,7 @@ git config --global https.proxy http://127.0.0.1:1080  # 不要做
 ==**必须使用https**方式clone，且全程开启代理软件==
 
 + 出现`LibreSSL SSL_connect: SSL_ERROR_SYSCALL in connection to github.com:443`问题，大概率为代理软件挂了，尝试更新订阅或切换节点
++ Unpacking objects卡住，文件可能过大，也可能该仓库是用ssh而不是http建立的连接，使用`git remote set-url origin https://xxx`
 
 # git多平台问题（win不要用）
 
