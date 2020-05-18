@@ -212,6 +212,10 @@ model.cuda()
 
 + model.load_state_dict可能会load到一张卡上，需要解决
 
+### torch.tensor
+
+多个变量从numpy.array转为tensor，一个改变则一起改变，需要在转换时用`torch.LongTensor(array.copy())`或`torch.from_numpy(array.copy())`
+
 ## 贝叶斯公式
 
 + 后验概率$P(w_i|x)=\frac{P(x|w_i)P(w_i)}{P(x)}$，$P(w_i)$为先验概率。已知是黑人x，求是非洲人wi概率：$P(非洲人|黑人)=P(非洲人)*\frac{P(黑人|非洲人)}{P(黑人)}$，$P(非洲人)$是先验概率。对于朴素贝叶斯，假设各个特征之间独立且相同重要，在现实世界不可能，故朴素。

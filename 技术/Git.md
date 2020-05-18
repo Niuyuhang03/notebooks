@@ -168,7 +168,7 @@ git config --global https.proxy http://127.0.0.1:1080  # 不要做
 ==**必须使用https**方式clone，且全程开启代理软件==
 
 + 出现`LibreSSL SSL_connect: SSL_ERROR_SYSCALL in connection to github.com:443`问题，大概率为代理软件挂了，尝试更新订阅或切换节点
-+ Unpacking objects卡住，文件可能过大，也可能该仓库是用ssh而不是http建立的连接，使用`git remote set-url origin https://xxx`
++ Unpacking objects卡住，文件可能过大，也可能该仓库是用ssh而不是https建立的连接，使用`git remote set-url origin https://xxx`。但在有多个代理时，由于代理冲突，可能无法使用git绑定的代理，导致https方式无法使用，需要再更换回git
 
 # git多平台问题（win不要用）
 
@@ -193,7 +193,7 @@ git config --global core.safecrlf true  # 禁止混用 lf 和 crlf 两种换行�
 
 通过这种方式避免有人没有设置 core.autocrlf 参数，并且将该文件加入版本控制中。
 
-如果已经出现crlf，批量转换为lf，需要在brew安装dos2unix，然后`find . -name "*" | xargs dos2unix`
+如果已经出现crlf，批量转换为lf，需要在brew安装dos2unix，然后`find . -name "*" | xargs dos2unix`。如果没有dos2unix，也可以`sed -i 's/\r//g' filename1 filename2...`
 
 # Mac git 自动补全
 
