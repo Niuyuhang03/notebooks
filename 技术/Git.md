@@ -174,7 +174,7 @@ git config --global https.proxy http://127.0.0.1:1080  # 不要做
 
 ## mac上换行符引起`^M`问题
 
-linux换行使用LF，Windows换行使用CRLF，即\r\n，在mac使用cat -e filename中可以看到^M\$即为crlf，\$即为lf。mac配置如下
+linux换行使用LF，Windows换行使用CRLF，即\r\n，在mac使用`cat -e filename`中可以看到^M\$即为crlf，\$即为lf。mac配置如下
 
 ```bash
 git config --global core.eol lf  # 统一换行符为 lf
@@ -193,7 +193,7 @@ git config --global core.safecrlf true  # 禁止混用 lf 和 crlf 两种换行�
 
 通过这种方式避免有人没有设置 core.autocrlf 参数，并且将该文件加入版本控制中。
 
-如果已经出现crlf，批量转换为lf，需要在brew安装dos2unix，然后`find . -name "*" | xargs dos2unix`。如果没有dos2unix，也可以`sed -i 's/\r//g' filename1 filename2...`
+如果已经出现crlf，批量转换为lf，需要在brew安装dos2unix，然后`find . -name "*" | xargs dos2unix`。如果没有dos2unix，也可以`sed -i 's/\r$//g' filename1 filename2...`
 
 # Mac git 自动补全
 
