@@ -106,8 +106,8 @@ git reset HEAD filename
 
 ```bash
 git log # 查上一commit版本号commitid
-git reset --mixed commitid # 撤销commitid之后的commit，不撤销add，--mixed可省略
-git reset --soft commitid # 撤销commitid之后的commit和add，不撤销修改
+git reset --soft commitid # 撤销commitid之后的commit，不撤销add，--mixed可省略
+git reset --mixed commitid # 撤销commitid之后的commit和add，不撤销修改
 git reset --hard commitid # 撤销commmitid之后的commit、add和修改，重置到之前某一commit状态
 ```
 
@@ -184,14 +184,7 @@ git config --global core.safecrlf true  # 禁止混用 lf 和 crlf 两种换行�
 
 其中git config可以通过`git config —list`参看，手动删除可以通过编辑`~/.gitconfig`进行修改。
 
-虽然通过设置了 git 全局参数解决了问题，但是作为团队协作的话，并不能保证所有人都正确配好了。git 提供了.gitattributes文件解决了这个问题。在项目根目录新建.gitattributes文件，添加一下内容：
-
-```bash
-# Set the default behavior, in case people don't have core.autocrlf set.
-* text eol=lf
-```
-
-通过这种方式避免有人没有设置 core.autocrlf 参数，并且将该文件加入版本控制中。
+==一定不能使用.gitattributes文件==解决该问题，否则文件复制进入仓库后可能有问题。
 
 如果已经出现crlf，批量转换为lf，需要在brew安装dos2unix，然后`find . -name "*" | xargs dos2unix`。如果没有dos2unix，也可以`sed -i 's/\r$//g' filename1 filename2...`
 
