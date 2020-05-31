@@ -1,6 +1,45 @@
-# 机器学习基础算法
+# ·机器学习基础算法
 
-+ 数据集来源为[100-Days-Of-ML-Code](https://github.com/MLEveryday/100-Days-Of-ML-Code/blob/master/datasets/Social_Network_Ads.csv)、[digit-recognizer](https://www.kaggle.com/c/digit-recognizer/data)。
+## PyTorch
+
+### 教程
+
++ [DEEP LEARNING WITH PYTORCH: A 60 MINUTE BLITZ](https://pytorch.org/tutorials/beginner/deep_learning_60min_blitz.html)
+
+### tensor
+
+tensor和np.ndarray类似，但可以放在GPU上。
+
+#### 查询
+
++ `x.dtype`：查看张量x内部数据的==类型==
++ `x.size()`：查看张量x的==维度==
+
+#### 创建
+
++ `torch.empty(x, y)`：创建维度x\*y的==未初始化==张量，不一定为全0
++ `torch.rand(x, y)`：创建维度x\*y的==随机==张量，范围是0-1
++ `torch.randn(x, y)`：创建维度x\*y的==随机且正态分布==张量，均值0方差1
++ `torch.ones(x, y)`：创建维度x\*y的==全1==向量
++ `torch.xxx_like(tensor1)`：创建和tensor1==维度相同==的xxx类型向量，如ones_like等
+
+#### 转换
+
++ `torch.tensor([1, 2, 3])`：从list或array直接变为tensor
++ `tensor1.numpy()`：从tensor转为numpy
++ `tensor1.view(x, y)`：对tensor1进行==维度修改==，其中维度-1表示任意，先分配其他维
++ `tensor1.item()`：从1维张量中得到值
++ `tensor1 = tensor1.cuda()`：将张量==放到GPU==
+
+#### 计算
+
++ `tensor1 + tensor2`或`torch.add(tensor1, tensor2)`或`tensor1.add_(tensor2)`：维度相同时，按元素==相加==。维度不同时，一个1\*m(或m\*1)张量和n\*1(1\*n)相加，得到n\*m的结果，==元素相加==
++ `torch.mm(tensor1, tensor2)`：矩阵相乘
+
+#### 自动求导
+
++ `tensor1.requires_grad_(True)`：设置为True后，张量的requires_grad属性为True，才能追踪张量的计算并之后求导。模型中定义的张量默认为True，用户定义的张量默认为False
++ `tensor1.gard`：输出tensor1的梯度
 
 ## 模型代码
 
@@ -140,9 +179,9 @@
           train_loss = criterion(outputs, train_y)
           correct += (torch.max(outputs, 1)[1] == train_y).sum().item()
   
-          optimizer.zero_grad()
-          train_loss.backward()
-          optimizer.step()
+          optimizer.zero_grad()  # 每个batch清零梯度，因为batch之间梯度不需要累积
+          train_loss.backward()  # 计算完loss后反向传播梯度
+          optimizer.step()  # 更新参数
           
           if (step + 1) % 100 == 0:
               print("step[{}/{}], loss:{:.4f}".format(step + 1, total_train_step, train_loss))
@@ -150,7 +189,7 @@
       train_losses.append(train_loss.item())
       train_acc = correct / (total_train_step * batch_size)
               
-      model.eval()
+      model.eval()  # 测试模式，不更新参数
       correct = 0
       for step, (validation_x, validation_y) in enumerate(validation_loader):
           if args.cuda:
