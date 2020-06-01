@@ -4,7 +4,8 @@
 
 ### 教程
 
-+ [DEEP LEARNING WITH PYTORCH: A 60 MINUTE BLITZ](https://pytorch.org/tutorials/beginner/deep_learning_60min_blitz.html)
++ [DEEP LEARNING WITH PYTORCH: A 60 MINUTE BLITZ](https://pytorch.org/tutorials/beginner/deep_learning_60min_blitz.html)：官方教程
++ [Dive-into-DL-PyTorch](https://github.com/ShusenTang/Dive-into-DL-PyTorch/)：《动手学深度学习》PyTorch版本，含电子版和torch代码。原书中代码框架为MXNet，先进但不够流行
 
 ### 检查版本
 
@@ -82,8 +83,8 @@ tensor和np.ndarray类似，但可以放在GPU上。
 + `torch.tensor([1, 2, 3])`：从list或array直接变为tensor
 + `torch.from_numpy(array)`：从array变为tensor。注意同一array转为多个tensor，需要浅拷贝`.copy()`，否则所有tensor和array的数据共享内存，一起变化
 + `tensor1.numpy()`：从cpu tensor转为numpy
-+ `tensor1.view(x, y)`：对tensor1进行==维度修改==，其中维度-1表示任意，先分配其他维。==不推荐==
-+ `tensor1.reshape((x, y))`：和view相同，但可以处理内存中不连续的张量，如经过transpose操作的张量
++ `tensor1.view(x, y)`：对tensor1进行==维度修改==，其中维度-1表示任意，先分配其他维，共享内存。不能处理经过transpose操作的内存不连续的张量。推荐使用`tensor1.clone().view(x, y)`，clone操作保证了副本不共享内存，但共享梯度
++ `tensor1.reshape((x, y))`：和view相同，共享内存，可以处理内存中不连续的张量，如经过transpose操作的张量。但reshape返回的结果可能共享内存也可能不共享，因此不推荐使用
 + `tensor1.item()`：从1维张量中得到值
 + `tensor1 = tensor1.cuda()`：将张量==放到GPU==
 + `tensor1 = tensor1.cpu()`：将张量==放到CPU==
@@ -95,6 +96,10 @@ tensor和np.ndarray类似，但可以放在GPU上。
 + `torch.bmm(tensor1, tensor2)`：批的矩阵相乘，即b\*m\*n和b\*n\*p的张量相乘，得到b\*m\*p结果
 + `torch.mul()`或`tensor1 * tensor2`：==按位点乘==
 + `torch.cat(list_of_tensors, dim=0)`：==拼接==张量，dim=0为上下拼接，dim=1为左右拼接
+
+### 索引
+
++ `y=x[0, :];y += 1`会使得x也一起变化，共享内存
 
 #### 自动求导
 
