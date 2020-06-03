@@ -508,38 +508,52 @@ def classify(normal_train_X, train_Y, normal_test_X, k):
     + 随机梯度下降在求梯度时，每次更新$\theta$只随机用了一个样本，而不是计算m个样本的平均值，收敛速度加快。
 
 + ```python
-  def gradient_descent(normal_train_X, train_Y, alpha, num_iters):
-      '''
-      梯度下降求theta
-      :param normal_train_X:归一化后的训练集特征
-      :param train_Y:训练集标签
-      :param alpha:学习速率
-      :param num_iters:迭代次数
-      :return:回归系数theta
-      '''
-      num_train_Y = train_Y.shape[0]
-      m_normal_train_X = normal_train_X.shape[1]
-      theta = np.zeros((m_normal_train_X,1))
-      for iter in range(num_iters):
-          error = np.zeros((m_normal_train_X,1))
-          for j in range(m_normal_train_X):
-              error[j] =  np.dot(np.transpose(normal_train_X[:, j]), (np.dot(normal_train_X, theta) - np.transpose([train_Y])))
-          theta -= error * alpha / num_train_Y
-      return theta
+  import numpy as np
+  import torch
+  import torch.nn as nn
+  import torch.nn.functional as F
+  import torch.utils.data as Data
+  import torch.optim as optim
   
-  def classify(normal_train_X, train_Y, normal_test_X, alpha, num_iters):
-      '''
-      预测
-      :param normal_train_X: 归一化后的训练集特征
-      :param train_Y: 训练集标签
-      :param normal_test_X: 归一化后的测试集特征
-      :param alpha：学习速率
-      :param num_iters：迭代次数
-      :return: 测试集标签，theta
-      '''
-      theta = gradient_descent(normal_train_X, train_Y, alpha, num_iters)
-      predict_test_Y = np.dot(normal_test_X, theta).flatten()
-      return predict_test_Y, theta
+  
+  class LRNet(nn.Module):
+      def __init__(self, nfeature):
+          super(LRNet, self).__init__()
+          self.LR = nn.Linear(nfeature, 1)
+      
+      def forward(self, x):
+          y = self.LR(x)
+          return y
+  
+  
+  num_inputs = 2
+  num_examples = 1000
+  true_w = [2, -3.4]
+  true_b = 4.2
+  features = torch.randn(num_examples, num_inputs, dtype=torch.float32)
+  labels = true_w[0] * features[:, 0] + true_w[1] * features[:, 1] + true_b
+  labels += torch.tensor(np.random.normal(0, 0.01, size=labels.size()), dtype=torch.float32)
+  
+  batch_size = 10
+  dataset = Data.TensorDataset(features, labels)
+  data_iter = Data.DataLoader(dataset, batch_size, shuffle=True)
+  
+  model = LRNet(num_inputs)
+  loss = nn.MSELoss()
+  optimizer = optim.SGD(model.parameters(), lr=0.03)
+  
+  epochs = 100
+  for epoch in range(epochs):
+      for X, y in data_iter:
+          output = model(X)
+          train_loss = loss(output, y.view(output.size()))
+  
+          optimizer.zero_grad()
+          train_loss.backward()
+          optimizer.step()
+      print("epoch: {:3d}, train loss: {:.7f}".format(epoch, train_loss))
+  
+  print(model.LR.weight, model.LR.bias)
   ```
 
 ## 聚类

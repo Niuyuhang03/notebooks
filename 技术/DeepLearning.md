@@ -26,6 +26,8 @@ torch.cuda.get_device_name(0)   # GPU类型
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torch.utils.data as Data
+import torch.optim as opt
 ```
 
 ### cuDNN
@@ -61,52 +63,78 @@ tensor和np.ndarray类似，但可以放在GPU上。
 
 #### 查询
 
-+ `x.dtype`：查看张量x内部数据的==类型==
-+ `x.size()`：查看张量x的==维度==
++ `x.dtype`：查看张量x内部数据的类型
++ `x.size()`：查看张量x的维度
 + `assert tensor.size() == (N, D, H, W)`：模型运行中检查维度符合预期
 + `tensor.is_cuda`：查询是否为GPU张量
 
 #### 创建
 
-+ `torch.empty(x, y)`：创建维度x\*y的==未初始化==张量，不一定为全0
-+ `torch.rand(x, y)`：创建维度x\*y的==随机==张量，范围是0-1
-+ `torch.randn(x, y)`：创建维度x\*y的==随机且正态分布==张量，均值0方差1
-+ `torch.zeros(x, y)`：创建维度x\*y的==全0==向量
-+ `torch.ones(x, y)`：创建维度x\*y的==全1==向量
-+ `torch.full([x, y], n)`：创建维度x\*y的==值全为n的==张量
-+ `torch.eye(x)`：创建维度x\*x的==单位==张量
-+ `torch.arange(start, end, step)`：创建一维==等差数列==张量
-+ `torch.xxx_like(tensor1)`：创建和tensor1==维度相同==的xxx类型向量，如ones_like等
++ `torch.empty(x, y)`：创建维度x\*y的未初始化张量，不一定为全0
++ `torch.rand(x, y)`：创建维度x\*y的随机张量，范围是0-1
++ `torch.randn(x, y)`：创建维度x\*y的随机且正态分布张量，均值0方差1
++ `torch.zeros(x, y)`：创建维度x\*y的全0向量
++ `torch.ones(x, y)`：创建维度x\*y的全1向量
++ `torch.full([x, y], n)`：创建维度x\*y的值全为n的张量
++ `torch.eye(x)`：创建维度x\*x的单位张量
++ `torch.arange(start, end, step)`：创建一维等差数列张量
++ `torch.xxx_like(tensor1)`：创建和tensor1维度相同的xxx类型向量，如ones_like等
 
 #### 转换
 
-+ `torch.tensor([1, 2, 3])`：从list或array直接变为tensor
-+ `torch.from_numpy(array)`：从array变为tensor。注意同一array转为多个tensor，需要浅拷贝`.copy()`，否则所有tensor和array的数据共享内存，一起变化
-+ `tensor1.numpy()`：从cpu tensor转为numpy
-+ `tensor1.view(x, y)`：对tensor1进行==维度修改==，其中维度-1表示任意，先分配其他维，共享内存。不能处理经过transpose操作的内存不连续的张量。推荐使用`tensor1.clone().view(x, y)`，clone操作保证了副本不共享内存，但共享梯度
-+ `tensor1.reshape((x, y))`：和view相同，共享内存，可以处理内存中不连续的张量，如经过transpose操作的张量。但reshape返回的结果可能共享内存也可能不共享，因此不推荐使用
++ `torch.tensor([1, 2, 3])`：从list或array直接变为tensor，==不共享内存==
++ `torch.from_numpy(array)`：从array变为tensor，==共享内存==
++ `tensor1.numpy()`：从cpu tensor转为numpy，==共享内存==
++ `tensor1.view(x, y)`：对tensor1进行==维度修改==，其中维度-1表示任意，先分配其他维，==共享内存==。不能处理经过transpose操作的内存不连续的张量。推荐使用`tensor1.clone().view(x, y)`，clone操作保证了副本不共享内存，但共享梯度
++ `tensor1.reshape((x, y))`：和view相同，可以处理内存中不连续的张量，如经过transpose操作的张量。但reshape返回的结果==可能共享内存也可能不共享==，因此不推荐使用
 + `tensor1.item()`：从1维张量中得到值
-+ `tensor1 = tensor1.cuda()`：将张量==放到GPU==
-+ `tensor1 = tensor1.cpu()`：将张量==放到CPU==
++ `tensor1 = tensor1.cuda()`：将张量放到GPU
++ `tensor1 = tensor1.cpu()`：将张量放到CPU
 
 #### 计算
 
-+ `tensor1 + tensor2`或`torch.add(tensor1, tensor2)`或`tensor1.add_(tensor2)`：维度相同时，按元素==相加==。维度不同时，一个1\*m(或m\*1)张量和n\*1(1\*n)相加，得到n\*m的==元素相加==的结果
++ `tensor1 + tensor2`或`torch.add(tensor1, tensor2)`或`tensor1.add_(tensor2)`：维度相同时，按元素相加。维度不同时，一个1\*m(或m\*1)张量和n\*1(1\*n)相加，得到n\*m的元素相加的结果，即PyTorch的==broadcasting机制==，先复制后计算
 + `torch.mm(tensor1, tensor2)`：矩阵相乘
 + `torch.bmm(tensor1, tensor2)`：批的矩阵相乘，即b\*m\*n和b\*n\*p的张量相乘，得到b\*m\*p结果
-+ `torch.mul()`或`tensor1 * tensor2`：==按位点乘==
-+ `torch.cat(list_of_tensors, dim=0)`：==拼接==张量，dim=0为上下拼接，dim=1为左右拼接
++ `torch.mul()`或`tensor1 * tensor2`：按位点乘
++ `torch.cat(list_of_tensors, dim=0)`：拼接张量，dim=0为上下拼接，dim=1为左右拼接
 
 ### 索引
 
-+ `y=x[0, :];y += 1`会使得x也一起变化，共享内存
++ `y=x[0, :];y += 1`会使得x也一起变化，==共享内存==
 
 #### 自动求导
 
-+ `tensor1.requires_grad_(True)`：设置为True后，张量的requires_grad属性为True，才能追踪张量的计算并之后求导。模型中定义的张量默认为True，用户定义的张量默认为False
++ `tensor1.requires_grad_(True)`：设置为True后，张量的requires_grad属性为True，才能追踪张量的计算，之后使用链式法则求导以传播梯度。模型中定义的张量默认为True，用户定义的张量默认为False
 + `tensor1.gard`：输出tensor1的梯度
++ `loss.backward() `：计算完loss后完成所有梯度计算
++ `with torch.no_grad()`：评估模型时使用，不计算所有梯度，加速并减少内存
 
 ### 模型
+
+#### 定义
+
+通常继承`nn.Module`来写自己的layer或model，基本结构为：
+
+```python
+class xxxNet(nn.Module):
+    def __init__(self, xxx):
+        super(xxxNet, self).__init__()
+        self.xxx = nn.xxx(xxx)
+    
+    def forward(self, x):
+        y = self.xxx(x)
+        return y
+或
+xxxNet = nn.Sequential(
+		nn.xxx(),
+		nn.xxx()
+		)
+```
+
+#### 参数
+
+`xxxNet.parameters()`可查看所有可学习的参数，打印时需要for循环单独打印每个参数
 
 #### 状态
 
@@ -127,6 +155,7 @@ import torch.nn.functional as F
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from IPython import display
 from sklearn.model_selection import train_test_split
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -166,6 +195,14 @@ test_x /= 255
 # 改变维度
 train_x = train_x.values.reshape(-1, 1, 28, 28)
 test_x = test_x.values.reshape(-1, 1, 28, 28)
+
+# 可视化
+def set_figsize(figsize=(3.5, 2.5)):
+    display.set_matplotlib_formats('svg')
+    plt.rcParams['figure.figsize'] = figsize
+set_figsize()
+plt.scatter(train_x[:, 0].numpy(), train_y.numpy(), 1)
+plt.show()
 
 # 划分训练集和验证集。为防止数据不均衡，设置stratify可以保证训练集和验证集里各类比例相同
 train_x, validation_x, train_y, validation_y = train_test_split(train_x, train_y, test_size=0.1, stratify=train_y)
@@ -259,7 +296,7 @@ for epoch in range(num_epochs):
         correct += (torch.max(outputs, 1)[1] == train_y).sum().item()
 
         optimizer.zero_grad()  # 每个batch清零梯度，因为batch之间梯度不需要累积
-        train_loss.backward()  # 计算完loss后反向传播梯度
+        train_loss.backward()  # 计算完loss后完成所有梯度计算
         optimizer.step()  # 更新参数
         
         if (step + 1) % 100 == 0:
@@ -326,13 +363,21 @@ model.cuda()
 
 ### 其他细节
 
-+ CNN的Pytorch和TF版，对于500张28\*28\*1的图片，为什么train_x.shape=(500, 1, 28, 28)？
++ 神经网络的梯度下降法如何更新参数
 
-    + 输入格式为` (batch, channel, H, W)`，即样本数、通道数、高度、宽度
+    + 计算batch的平均损失，每个需要更新的参数$var=var-\frac{\alpha}{batch\_size}*\frac{\partial loss}{\partial var}$
+
++ 为什么全连接层后往往需要激活函数
+
+    + 如果没有激活函数，多个全连接层连接，相当于多个线性变换，合并后就是一个线性变换，毫无意义
+
++ 训练误差和泛化误差
+
+    + 泛化误差即测试集上的误差
 
 + model在train之后，需要验证cv集，为什么反传的loss是train的而不是cv的？
 
-+ cv集的作用就是查看表现，由于test没有label，只能通过找一个不会用来训练、模型从没见过的数据集（即cv集）来进行验证效果，但模型还是应该根据train集来训练。
+    + cv集的作用就是查看表现，由于test没有label，只能通过找一个不会用来训练、模型从没见过的数据集（即cv集）来进行验证效果，但模型还是应该根据train集来训练。
 
 + 归一化
 
@@ -400,12 +445,15 @@ model.cuda()
     + 正则化：利用正则化系数$\lambda$作为惩罚，以放大逻辑回归的梯度中每个$\theta$的影响，从而减小$\theta$的值，防止过拟合。$\theta_0$恒为1，不需惩罚。==L1正则化是绝对值之和，L2正则化是平方和的开方==，常用L2来防止过拟合。
     + batch normalizatin：经过每一层计算，数据分布会发生变化，学习越来越困难。BN即在一个mini-batch内对数据的每个feature进行均值-方差归一化，归一化后再做一个线性变换$y=\gamma x+\beta$，通过两个可学习的参数，一定程度上保留数据原本特征。极端的情况下，$\gamma$和$\beta$就是方差和均值，数据完全还原。batch_size一般塞满卡即可。
 
-+ 梯度爆炸和消失：BP反传中，多个导数连乘可能导致梯度非常小，无法更新参数，导致梯度消失。同理，可能梯度非常大，导致梯度爆炸。将Sigmoid换用ReLU或LeakyReLU激活函数可解决，其正数的导数恒为1，不会带来梯度爆炸和消失。
++ 梯度爆炸和消失
+
+    + BP反传中，多个导数连乘可能导致梯度非常小，无法更新参数，导致梯度消失。同理，可能梯度非常大，导致梯度爆炸。将Sigmoid换用ReLU或LeakyReLU激活函数可解决，其正数的导数恒为1，不会带来梯度爆炸和消失。
 
 + loss
 
-    + `nn.CrossEntropyLoss(outputs, labels)`：n分类问题pred为m\*n维，y为m\*==1==维（`LongTensor`）。过程为先进行`nn.LogSoftmax()`，再`nn.NLLLoss()`，其中`nn.NLLLoss()`即为对于每个样本，`loss += -pred[class]`，最后对loss求均值。
+    + `nn.CrossEntropyLoss(outputs, labels)`：n分类问题pred为m\*n维，y为m\*==1==维（`LongTensor`）。过程为先进行`nn.LogSoftmax()`，再`nn.NLLLoss()`，其中`nn.NLLLoss()`即为对于每个样本，`loss += -log(pred)[class]`，求$loss=-\Sigma_{i=0}^n y_i\log pred_i$，y为0或1，总loss为$\frac{1}{m}\Sigma loss$。==交叉熵只要满足label为1的概率足够大，就能保证分类正确，因此不考虑label为0的pred==
     + `nn.BCEWithLogitsLoss(outputs, labels)`：二分类问题pred为m\*n维，y为m\*==n==维独热码（`FloatTensor`）。过程为先进行`nn.Sigmoid()`，再`nn.BCELoss()`，其中`nn.BCELoss()`即为对于每个样本，求$loss=-\frac{1}{n}\Sigma_{i=0}^n(y_i\ln pred_i+(1-y_i)\ln(1-pred_i))$，总loss为$\frac{1}{m}\Sigma loss$。
+    + `nn.MSELoss()`：均方误差
 
 + 激活函数：加入非线性运算，否则所有全连接层合并后等价于一个线性变换
 
@@ -427,7 +475,7 @@ model.cuda()
 
 + 权重由反向传播更新。
 
-    + 对于输出层，求得误差$\delta_i=y_{i,true}-y_i$}。对于隐藏层，求得误差$\delta_i=\Sigma w\delta$。
+    + 对于输出层，求得误差$\delta_i=y_{i,true}-y_i$。对于隐藏层，求得误差$\delta_i=\Sigma w\delta$。
     + 更新权重。从输入层开始，$w=w+\eta\delta\frac{\partial y}{\partial\Sigma w} x$，其中$\eta$是学习速率。
 
 + ```python
