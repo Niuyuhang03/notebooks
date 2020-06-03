@@ -10,10 +10,15 @@
 ### 检查版本
 
 ```python
+# python下
 torch.__version__               # PyTorch版本
 torch.version.cuda              # CUDA版本
 torch.backends.cudnn.version()  # cuDNN版本
 torch.cuda.get_device_name(0)   # GPU类型
+torch.cuda.is_available()		# GPU是否可用
+torch.cuda.device_count()		# 本次任务已申请的GPU数量
+# bash下
+nvidia-smi						# 查看GPU显卡详情
 ```
 
 ### 运行代码
@@ -67,6 +72,7 @@ tensor和np.ndarray类似，但可以放在GPU上。
 + `x.size()`：查看张量x的维度
 + `assert tensor.size() == (N, D, H, W)`：模型运行中检查维度符合预期
 + `tensor.is_cuda`：查询是否为GPU张量
++ `tensor.device`：查询tensor位置
 
 #### 创建
 
@@ -114,7 +120,7 @@ tensor和np.ndarray类似，但可以放在GPU上。
 
 #### 定义
 
-通常继承`nn.Module`来写自己的layer或model，基本结构为：
+通常继承`nn.Module`来写自己的layer或model，并重载\_\_init\_\_和forward函数，基本结构为：
 
 ```python
 class xxxNet(nn.Module):
@@ -125,7 +131,7 @@ class xxxNet(nn.Module):
     def forward(self, x):
         y = self.xxx(x)
         return y
-或
+# 或
 xxxNet = nn.Sequential(
 		nn.xxx(),
 		nn.xxx()
@@ -134,16 +140,51 @@ xxxNet = nn.Sequential(
 
 #### 参数
 
-`xxxNet.parameters()`可查看所有可学习的参数，打印时需要for循环单独打印每个参数
+`xxxNet.named_parameters()`可查看所有可学习的参数，打印时需要for循环单独打印每个参数的name和param
+
+```python
+for name, param in model.named_parameters():
+    print(name, param.size())
+```
+
+此外，层中的`nn.Prarmeter`会被自动加入到参数列表中，但`torch.rand`等其他tensor不会加入参数列表
+
+在模型训练结束后，可以打印模型或优化器的参数
+
+```python
+print(model.state_dict())
+print(optimizer.state_dict())
+```
 
 #### 状态
 
 + `model.train()`：训练状态
-+ `model.eval()`：测试/验证状态，bn和dropout固定，使用训练好的值
++ `model.eval()`：测试/验证状态，==bn固定参数，dropout失效==，使用训练好的值
 
 #### GPU
 
 `model.cuda()`将模型放到GPU，模型中定义的参数也会放在GPU，但模型传入的参数仍未cpu。注意不需要`model=model.cuda()`
+
+#### 保存和加载模型
+
+保存模型
+
+```python
+torch.save(model.state_dict(), PATH) # 推荐的文件后缀名是pt或pth
+# 或
+torch.save(model, PATH)
+```
+
+加载模型
+
+```python
+model = TheModelClass(*args, **kwargs)
+model.load_state_dict(torch.load(PATH))
+# 或
+model = torch.load(PATH)
+```
+
+推荐前者
 
 ### 代码搭建
 
@@ -374,6 +415,7 @@ model.cuda()
 + 训练误差和泛化误差
 
     + 泛化误差即测试集上的误差
+    + 显然，训练误差一般小于或等于泛化误差，即模型不会在验证集上表现的比训练集还好
 
 + model在train之后，需要验证cv集，为什么反传的loss是train的而不是cv的？
 
@@ -441,9 +483,11 @@ model.cuda()
 
 + 过拟合解决方法
 
-    + dropout
-    + 正则化：利用正则化系数$\lambda$作为惩罚，以放大逻辑回归的梯度中每个$\theta$的影响，从而减小$\theta$的值，防止过拟合。$\theta_0$恒为1，不需惩罚。==L1正则化是绝对值之和，L2正则化是平方和的开方==，常用L2来防止过拟合。
-    + batch normalizatin：经过每一层计算，数据分布会发生变化，学习越来越困难。BN即在一个mini-batch内对数据的每个feature进行均值-方差归一化，归一化后再做一个线性变换$y=\gamma x+\beta$，通过两个可学习的参数，一定程度上保留数据原本特征。极端的情况下，$\gamma$和$\beta$就是方差和均值，数据完全还原。batch_size一般塞满卡即可。
+    + dropout：测试时一般不使用Dropout，调用model.eval()即可
+    + L2正则化或权重衰减：利用正则化系数$\lambda$作为惩罚，以放大逻辑回归的梯度中每个$\theta$的影响，从而减小$\theta$的值，防止过拟合。$\theta_0$恒为1，不需惩罚。==L1正则化是绝对值之和，L2正则化是平方和的开方==，常用L2来防止过拟合。
+    + batch normalizatin：经过每一层计算，数据分布会发生变化，学习越来越困难。BN即在一个mini-batch内对数据的每个feature进行均值-方差归一化，归一化后再做一个线性变换$y=\gamma x+\beta$，通过两个可学习的参数，一定程度上保留数据原本特征。极端的情况下，$\gamma$和$\beta$就是方差和均值，数据完全还原。batch_size一般塞满卡即可
+    + 减小调整模型复杂度：模型越复杂，越容易过拟合。如高阶多项式比低阶多项式更容易拟合到训练集
+    + 增大数据量：数据量过少时，容易过拟合。较难实现
 
 + 梯度爆炸和消失
 
@@ -461,7 +505,11 @@ model.cuda()
     + ReLU效果不好时，尝试LeakyReLU或Maxout。
     + 模型不深，激活函数作用不大。
 
-+ 优化器：
++ 目标函数J
+
+    + J=损失函数loss+L2正则化惩罚项
+    
++ 优化器
 
     + Adam：为每一个参数适应性地保留1个学习率，不像SGD一样学习速率不变
 
