@@ -18,6 +18,8 @@
 
 + 修改默认打开方式：option+右键-默认打开方式
 
++ 文件加全权限`sudo chmod -R 777 filename`
+
 + 修改dock速度：`defaults write com.apple.Dock autohide-delay -float 0 && killall Dock`。重置dock速度：`defaults delete com.apple.Dock autohide-delay && killall Dock`
 
 + bash & zsh
