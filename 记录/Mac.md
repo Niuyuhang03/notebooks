@@ -128,6 +128,10 @@
 
 ## 安装
 
+### 关闭SIP
+
+`csrutil status`为enable时未关闭。重启mac，按住command+R，进入Recovery后在Utlilties里打开terminal，输入csrutil disable，即可安装部分软件。
+
 ### Homebrew
 
 + 最好用的软件安装和管理程序
