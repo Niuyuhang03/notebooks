@@ -1,11 +1,14 @@
 # 深度学习
 
-## PyTorch
+## 教程
 
-### 教程
-
-+ [DEEP LEARNING WITH PYTORCH: A 60 MINUTE BLITZ](https://pytorch.org/tutorials/beginner/deep_learning_60min_blitz.html)：官方教程
++ [DEEP LEARNING WITH PYTORCH: A 60 MINUTE BLITZ](https://pytorch.org/tutorials/beginner/deep_learning_60min_blitz.html)：PyTorch官方教程
 + [Dive-into-DL-PyTorch](https://github.com/ShusenTang/Dive-into-DL-PyTorch/)：《动手学深度学习》PyTorch版本，含电子版和torch代码。原书中代码框架为MXNet，先进但不够流行
++ [神经网络与深度学习](https://nndl.github.io/nndl-book.pdf)
+
+深度学习和神经网络并不等同，深度学习可以使用神经网络，也可以使用深度信念网络等概率图模型。
+
+## PyTorch
 
 ### 检查版本
 
