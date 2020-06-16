@@ -11,6 +11,25 @@
 
 ## PaddlePaddle
 
+### 静态图
+
+```python
+import paddle.fluid as fluid
+
+x = fluid.data(name='x', shape=[2, 3], dtype="int64")  # 定义tensor，未赋值
+
+# 静态图中打印一个tensor的值
+x = fluid.layers.fill_constant(shape=[3, 2], value=16, dtype="int64")
+x = fluid.layers.Print(x, message="Print x:")
+place = fluid.CPUPlace()
+exe = fluid.Executor(place)
+exe.run(fluid.default_startup_program())
+ret = exe.run()
+print(ret)
+```
+
+### 动态图
+
 
 
 ## PyTorch
