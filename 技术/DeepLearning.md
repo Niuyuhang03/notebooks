@@ -11,7 +11,7 @@
 
 ## PaddlePaddle
 
-### 静态图
+### 静态图示例
 
 ```python
 import paddle.fluid as fluid
@@ -19,8 +19,8 @@ import paddle.fluid as fluid
 x = fluid.data(name='x', shape=[2, 3], dtype="int64")  # 定义tensor，未赋值
 
 # 静态图中打印一个tensor的值
-x = fluid.layers.fill_constant(shape=[3, 2], value=16, dtype="int64")
-x = fluid.layers.Print(x, message="Print x:")
+x = fluid.layers.fill_constant(shape=[3, 2], value=16, dtype="int64")  # 值相同的tensor
+x = fluid.layers.Print(x, message="Print x:")  # 打印操作
 place = fluid.CPUPlace()
 exe = fluid.Executor(place)
 exe.run(fluid.default_startup_program())
@@ -28,9 +28,13 @@ ret = exe.run()
 print(ret)
 ```
 
-### 动态图
+### 动态图示例
 
 
+
+### 算子
+
+`fluid.layers`中提供
 
 ## PyTorch
 
