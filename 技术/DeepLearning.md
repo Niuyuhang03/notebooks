@@ -11,30 +11,90 @@
 
 ## PaddlePaddle
 
-### 静态图示例
+### 静态图示例（声明式编程）
+
++ 不能使用python提供的while、if等控制流。定义执行器，在执行该执行器并传入数据时，才真正运行模型。操作会放入program中，通过Executor进行编译，然后执行Executor
 
 ```python
+# 张量相加
 import paddle.fluid as fluid
+import numpy as np
 
-x = fluid.data(name='x', shape=[2, 3], dtype="int64")  # 定义tensor，未赋值
+# 定义tensor
+a = fluid.data(name='a', shape=[None, 1], dtype='int64')
+b = fluid.data(name='b', shape=[None, 1], dtype='int64')
 
-# 静态图中打印一个tensor的值
-x = fluid.layers.fill_constant(shape=[3, 2], value=16, dtype="int64")  # 值相同的tensor
-x = fluid.layers.Print(x, message="Print x:")  # 打印操作
-place = fluid.CPUPlace()
-exe = fluid.Executor(place)
-exe.run(fluid.default_startup_program())
-ret = exe.run()
-print(ret)
+# 定义模型
+result = fluid.layers.elementwise_add(a, b)
+
+# 准备运行
+place = fluid.CPUPlace()  # 定义运算设备
+exe = fluid.Executor(place)  # 创建执行器
+exe.run(fluid.default_startup_program())  # 网络参数初始化
+
+# 输入数据
+data1 = np.array([1, 2, 3]).reshape(-1, 1)
+data2 = np.array([1, 2, 3]).reshape(-1, 1)
+
+# 运行网络
+output = exe.run(
+    feed={'a': data1, 'b': data2},
+    fetch_list=[a, b, result]  # 需要打印的变量list
+	)
+print(output)
 ```
 
-### 动态图示例
+```python
+# 线性回归
+import paddle.fluid as fluid
+import numpy as np
+
+
+# 定义数据
+train_data = np.array([[1.0], [2.0], [3.0], [4.0]]).astype('float32')
+y_true = np.array([[2.0], [4.0], [6.0], [8.0]]).astype('float32')
+
+# 定义占位tensor
+x = fluid.data(name='x', shape=[None, 1], dtype='float32')
+y = fluid.data(name='y', shape=[None, 1], dtype='float32')
+
+# 定义网络
+y_predict = fluid.layers.fc(input=x, size=1, act=None)
+
+# 定义损失函数se
+cost = fluid.layers.square_error_cost(input=y_predict, label=y)
+avg_cost = fluid.layers.mean(cost)
+
+# 定义优化器
+sgd_optimizer = fluid.optimizer.SGD(learning_rate=0.01)
+sgd_optimizer.minimize(avg_cost)
+
+# 网络参数初始化
+cpu = fluid.CPUPlace()
+exe = fluid.Executor(cpu)
+exe.run(fluid.default_startup_program())
+
+# 训练
+for i in range(100):
+    outs = exe.run(
+        feed = {'x': train_data, 'y': y_true},
+        fetch_list = [y_predict, avg_cost]
+    )
+print(outs)
+```
+
+### 动态图示例（命令式编程）
 
 
 
 ### 算子
 
-`fluid.layers`中提供
++ `fluid.layers`或`fluid.nets`中提供
+    + `fluid.layers.fill_constant(shape=[3, 2], value=16, dtype="int64")`：值都为16的3行2列张量
+    + `fluid.layers.Print(x, message="Print x:")`：模型中==打印==张量x
+    + `fluid.layers.while_loop(cond, body, loop_vars)`：静态图中的while，在cond函数为真时执行body函数，两函数都传入loop_vars变量
+    + `fluid.layers.create_parameter(name, shape, dtype)`：创建==可学习的variable==
+    + `fluid.layers.fc(input, size)`：全连接层
 
 ## PyTorch
 
