@@ -13,7 +13,7 @@
 
 ### 静态图示例（声明式编程）
 
-+ 不能使用python提供的while、if等控制流。定义执行器，在执行该执行器并传入数据时，才真正运行模型。操作会放入program中，通过Executor进行编译，然后执行Executor
++ 不能使用python提供的while、if等控制流。定义执行器，在执行该执行器并传入数据时，才真正运行模型。操作会放入program中，通过Executor进行编译，然后执行Executor。通常静态图更快，因为不需要小粒度op进行python与cpp交互
 
 ```python
 # 张量相加
@@ -30,7 +30,7 @@ result = fluid.layers.elementwise_add(a, b)
 # 准备运行
 place = fluid.CPUPlace()  # 定义运算设备
 exe = fluid.Executor(place)  # 创建执行器
-exe.run(fluid.default_startup_program())  # 网络参数初始化
+exe.run(fluid.default_startup_program())  # 网络参数初始化，并为变量分配空间
 
 # 输入数据
 data1 = np.array([1, 2, 3]).reshape(-1, 1)
@@ -84,6 +84,23 @@ print(outs)
 ```
 
 ### 动态图示例（命令式编程）
+
++ 使用`with fluid.dygraph.guard():`开启动态图模式
+
+```python
+import paddle.fluid as fluid
+import numpy as np
+from fluid.dygraph.base import to_variable
+
+
+data = np.ones([2, 2], np.float32)
+
+# 开启动态图模式
+with fluid.dygraph.guard():
+    x = to_variable(data)
+    x += 10
+    print(x.numpy())
+```
 
 
 
