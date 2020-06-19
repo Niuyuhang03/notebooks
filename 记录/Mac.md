@@ -272,6 +272,7 @@
 ### VS Code
 
 + 主题选择one dark pro
++ 勾选‘Terminal: Execute In File Dir’为True
 
 ### 其他常用软件清单
 
