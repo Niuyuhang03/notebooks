@@ -177,8 +177,6 @@ with fluid.dygraph.guard():
     print(x.numpy())
 ```
 
-
-
 ### 算子
 
 + `fluid.layers`或`fluid.nets`中提供
