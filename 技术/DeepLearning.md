@@ -163,18 +163,75 @@ with fluid.scope_guard(inference_scope):
 + 使用`with fluid.dygraph.guard():`开启动态图模式
 
 ```python
+import paddle
 import paddle.fluid as fluid
 import numpy as np
-from fluid.dygraph.base import to_variable
 
 
-data = np.ones([2, 2], np.float32)
+datafile = "./work/housing.data"
+data = np.fromfile(datafile, sep=' ')
+feature_names = [ 'CRIM', 'ZN', 'INDUS', 'CHAS', 'NOX', 'RM', 'AGE', 'DIS', 'RAD', 'TAX', 'PTRATIO', 'B', 'LSTAT', 'MEDV' ]
+data = data.reshape(-1, len(feature_names))
+print(data.shape)
+
+ratio = 0.8
+offset = int(len(data) * ratio)
+train_data = data[0: offset, :]
+test_data = data[offset:, :]
+print(train_data.shape)
+print(test_data.shape)
+
+max_data = train_data.max(0)
+min_data = train_data.min(0)
+train_data = (train_data - min_data) / (max_data - min_data)
+test_data = (test_data - min_data) / (max_data - min_data)
+
+class Model(fluid.dygraph.Layer):
+    def __init__(self):
+        super(Model, self).__init__()
+        self.fc = fluid.dygraph.Linear(13, 1)
+        
+    def forward(self, x):
+        return self.fc(x)
 
 # 开启动态图模式
-with fluid.dygraph.guard():
-    x = to_variable(data)
-    x += 10
-    print(x.numpy())
+with fluid.dygraph.guard(fluid.CPUPlace()):
+    EPOCH_NUM = 10
+    BATCH_SIZE = 10
+    
+    model = Model()
+    model.train()
+    opt = fluid.optimizer.SGD(learning_rate=0.01, parameter_list=model.parameters())
+    
+    for epoch in range(EPOCH_NUM):
+        np.random.shuffle(train_data)
+        mini_batches = [train_data[k: k + BATCH_SIZE] for k in range(0, len(train_data), BATCH_SIZE)]
+        for iter_id, batch_data in enumerate(mini_batches):
+            batch_x, batch_y = np.array(batch_data[:, : -1]).astype('float32'), np.array(batch_data[:, -1]).astype('float32')
+            batch_x, batch_y = fluid.dygraph.to_variable(batch_x), fluid.dygraph.to_variable(batch_y)
+            output = model(batch_x)
+            
+            loss = fluid.layers.square_error_cost(output, label=batch_y)
+            avg_loss = fluid.layers.mean(loss)
+            if iter_id % 20 == 0:
+                print("epoch: {}, iter: {}, loss is: {}".format(epoch, iter_id, avg_loss.numpy()))
+            
+            avg_loss.backward()  # 反向传播
+            opt.minimize(avg_loss)  # 更新梯度
+            model.clear_gradients()  # 清除梯度
+    
+    fluid.save_dygraph(model.state_dict(), 'LR_model')
+            
+with fluid.dygraph.guard(fluid.CPUPlace()):
+    model_dict, _ = fluid.load_dygraph('LR_model')
+    model.load_dict(model_dict)
+    model.eval()
+    test_x, test_y = np.array(test_data[:, : -1]).astype('float32'), np.array(test_data[:, -1]).astype('float32')
+    test_x, test_y = fluid.dygraph.to_variable(test_x), fluid.dygraph.to_variable(test_y)
+    output = model(test_x)
+    output = output * (max_data[-1] - min_data[-1]) + min_data[-1]
+    print("label: {}\n predict: {}".format(data[offset:, -1], output))
+    print(model.parameters())
 ```
 
 ### 算子
