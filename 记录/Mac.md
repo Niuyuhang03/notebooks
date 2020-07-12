@@ -276,6 +276,8 @@
 
 ### 其他常用软件清单
 
++ App Cleaner
+
 + One Switch
 + 自动切换输入法
 + Megnet
@@ -296,3 +298,4 @@
 + 战网
 + Steam
 + 网易云音乐
++ karabiner，设置为from left_option to left_command

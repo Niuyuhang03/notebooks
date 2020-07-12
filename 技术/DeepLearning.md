@@ -45,6 +45,7 @@ print(output)
 ```
 
 ```python
+# 线性回归
 import paddle
 import paddle.fluid as fluid
 import numpy as np
@@ -163,6 +164,7 @@ with fluid.scope_guard(inference_scope):
 + 使用`with fluid.dygraph.guard():`开启动态图模式
 
 ```python
+# 线性回归
 import paddle
 import paddle.fluid as fluid
 import numpy as np
