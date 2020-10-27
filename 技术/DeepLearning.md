@@ -648,7 +648,8 @@ model.cuda()
 
 + 神经网络的梯度下降法如何更新参数
 
-    + 计算batch的平均损失，每个需要更新的参数$var=var-\frac{\alpha}{batch\_size}*\frac{\partial loss}{\partial var}$
+    + 计算batch的平均损失，每个需要更新的参数$var=var-\frac{\alpha}{batch\_size}*\frac{\partial loss}{\partial var}$。
+    + 梯度下降法理解：显然模型越准确，我们loss就越小，这也是loss的定义。loss的变化作为一条曲线，在loss极小时，导数为0。梯度方向是曲线斜率最大的方向。梯度下降法通过找到loss梯度多反方向，找到loss下降最快的方向，来多步走到极小值点。根据梯度的定义，gradient=(∂L/∂w0, ∂L/∂w1, ..., ∂L/∂w12, ∂L/∂b)，只需每个参数wi=wi-alpha*(∂L/∂wi)，即减去步长*梯度方向，就可以可更新参数。其中梯度方向可以求导计算，是每个样本计算出结果的平均值（平均来自loss定义中的平均）。这也就反映出归一化对步长的影响，归一化后的参数，使得走相同步长的影响相同。
 
 + 为什么全连接层后往往需要激活函数
 
