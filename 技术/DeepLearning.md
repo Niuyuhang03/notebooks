@@ -646,6 +646,82 @@ model.cuda()
 
 ### 其他细节
 
++ 异步读取数据：使用paddle提供的缓冲区，降低读取数据等待时间
+    ```python
+    def load_data(mode='train'):
+    datafile = './work/mnist.json.gz'
+    print('loading mnist dataset from {} ......'.format(datafile))
+    # 加载json数据文件
+    data = json.load(gzip.open(datafile))
+    print('mnist dataset load done')
+   
+    # 读取到的数据区分训练集，验证集，测试集
+    train_set, val_set, eval_set = data
+    if mode=='train':
+        # 获得训练数据集
+        imgs, labels = train_set[0], train_set[1]
+    elif mode=='valid':
+        # 获得验证数据集
+        imgs, labels = val_set[0], val_set[1]
+    elif mode=='eval':
+        # 获得测试数据集
+        imgs, labels = eval_set[0], eval_set[1]
+    else:
+        raise Exception("mode can only be one of ['train', 'valid', 'eval']")
+    print("训练数据集数量: ", len(imgs))
+    
+    # 校验数据
+    imgs_length = len(imgs)
+
+    assert len(imgs) == len(labels), \
+          "length of train_imgs({}) should be the same as train_labels({})".format(len(imgs), len(labels))
+    
+    # 获得数据集长度
+    imgs_length = len(imgs)
+    
+    # 定义数据集每个数据的序号，根据序号读取数据
+    index_list = list(range(imgs_length))
+    # 读入数据时用到的批次大小
+    BATCHSIZE = 100
+    
+    # 定义数据生成器
+    def data_generator():
+        if mode == 'train':
+            # 训练模式下打乱数据
+            random.shuffle(index_list)
+        imgs_list = []
+        labels_list = []
+        for i in index_list:
+            # 将数据处理成希望的格式，比如类型为float32，shape为[1, 28, 28]
+            img = np.reshape(imgs[i], [1, IMG_ROWS, IMG_COLS]).astype('float32')
+            label = np.reshape(labels[i], [1]).astype('float32')
+            imgs_list.append(img) 
+            labels_list.append(label)
+            if len(imgs_list) == BATCHSIZE:
+                # 获得一个batchsize的数据，并返回
+                yield np.array(imgs_list), np.array(labels_list)
+                # 清空数据读取列表
+                imgs_list = []
+                labels_list = []
+    
+        # 如果剩余数据的数目小于BATCHSIZE，
+        # 则剩余数据一起构成一个大小为len(imgs_list)的mini-batch
+        if len(imgs_list) > 0:
+            yield np.array(imgs_list), np.array(labels_list)
+    return data_generator
+    
+    # 定义数据读取后存放的位置，CPU或者GPU，这里使用CPU
+    # place = fluid.CUDAPlace(0) 时，数据才读取到GPU上
+    place = fluid.CPUPlace()
+    with fluid.dygraph.guard(place):
+        # 声明数据加载函数，使用训练模式
+        train_loader = load_data(mode='train')
+        # 定义DataLoader对象用于加载Python生成器产生的数据
+        data_loader = fluid.io.DataLoader.from_generator(capacity=5, return_list=True)
+        # 设置数据生成器
+        data_loader.set_batch_generator(train_loader, places=place)
+    ```
+
 + 神经网络的梯度下降法如何更新参数
 
     + 计算batch的平均损失，每个需要更新的参数$var=var-\frac{\alpha}{batch\_size}*\frac{\partial loss}{\partial var}$。
