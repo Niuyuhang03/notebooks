@@ -832,7 +832,10 @@ model.cuda()
     
 + 优化器
 
-    + Adam：为每一个参数适应性地保留1个学习率，不像SGD一样学习速率不变
+    + SGD：每次取少量数据，导致一定震荡。
+    + Momentum：引入动量概念，增加惯性，减少震荡
+    + AdaGrad：学习率逐步减小
+    + Adam：Momentum和AdaGrad
 
 ## ANN
 
